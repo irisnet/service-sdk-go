@@ -1,10 +1,122 @@
 package service
 
-import sdk "github.com/irisnet/service-sdk-go/types"
+import (
+	sdk "github.com/irisnet/service-sdk-go/types"
+	"time"
+)
 
 // ServiceI defines a set of interfaces in the service module
 type ServiceI interface {
 	sdk.Module
 	//Tx
-	//Query
+	Query
+}
+
+// Query defines a set of query interfaces in the service module
+type Query interface {
+	QueryServiceDefinition(serviceName string) (QueryServiceDefinitionResponse, sdk.Error)
+
+	QueryServiceBinding(serviceName string, provider sdk.AccAddress) (QueryServiceBindingResponse, sdk.Error)
+	QueryServiceBindings(serviceName string) ([]QueryServiceBindingResponse, sdk.Error)
+
+	QueryServiceRequest(requestID string) (QueryServiceRequestResponse, sdk.Error)
+	QueryServiceRequests(serviceName string, provider sdk.AccAddress) ([]QueryServiceRequestResponse, sdk.Error)
+	QueryRequestsByReqCtx(requestContextID string, batchCounter uint64) ([]QueryServiceRequestResponse, sdk.Error)
+
+	QueryServiceResponse(requestID string) (QueryServiceResponseResponse, sdk.Error)
+	QueryServiceResponses(requestContextID string, batchCounter uint64) ([]QueryServiceResponseResponse, sdk.Error)
+
+	QueryRequestContext(requestContextID string) (QueryRequestContextResponse, sdk.Error)
+	QueryFees(provider string) (sdk.Coins, sdk.Error)
+	QueryParams() (QueryParamsResponse, sdk.Error)
+}
+
+// QueryServiceDefinitionResponse represents a service definition
+type QueryServiceDefinitionResponse struct {
+	Name              string         `json:"name"`
+	Description       string         `json:"description"`
+	Tags              []string       `json:"tags"`
+	Author            sdk.AccAddress `json:"author"`
+	AuthorDescription string         `json:"author_description"`
+	Schemas           string         `json:"schemas"`
+}
+
+// BindServiceRequest defines the request parameters of the service binding
+type BindServiceRequest struct {
+	ServiceName string       `json:"service_name"`
+	Deposit     sdk.DecCoins `json:"deposit"`
+	Pricing     string       `json:"pricing"`
+	QoS         uint64       `json:"Qos"`
+	Provider    string       `json:"provider"`
+}
+
+// QueryServiceBindingResponse defines a struct for service binding
+type QueryServiceBindingResponse struct {
+	ServiceName  string         `json:"service_name"`
+	Provider     sdk.AccAddress `json:"provider"`
+	Deposit      sdk.Coins      `json:"deposit"`
+	Pricing      string         `json:"pricing"`
+	QoS          uint64         `json:"Qos"`
+	Owner        sdk.AccAddress `json:"owner"`
+	Available    bool           `json:"available"`
+	DisabledTime time.Time      `json:"disabled_time"`
+}
+
+// Request defines a request which contains the detailed request data
+type QueryServiceRequestResponse struct {
+	ID                         string         `json:"id"`
+	ServiceName                string         `json:"service_name"`
+	Provider                   sdk.AccAddress `json:"provider"`
+	Consumer                   sdk.AccAddress `json:"consumer"`
+	Input                      string         `json:"input"`
+	ServiceFee                 sdk.Coins      `json:"service_fee"`
+	SuperMode                  bool           `json:"super_mode"`
+	RequestHeight              int64          `json:"request_height"`
+	ExpirationHeight           int64          `json:"expiration_height"`
+	RequestContextID           string         `json:"request_context_id"`
+	RequestContextBatchCounter uint64         `json:"request_context_batch_counter"`
+}
+
+// Response defines a response
+type QueryServiceResponseResponse struct {
+	Provider                   sdk.AccAddress `json:"provider"`
+	Consumer                   sdk.AccAddress `json:"consumer"`
+	Output                     string         `json:"output"`
+	Result                     string         `json:"error"`
+	RequestContextID           string         `json:"request_context_id"`
+	RequestContextBatchCounter uint64         `json:"request_context_batch_counter"`
+}
+
+// QueryRequestContextResponse defines a context which holds request-related data
+type QueryRequestContextResponse struct {
+	ServiceName        string           `json:"service_name"`
+	Providers          []sdk.AccAddress `json:"providers"`
+	Consumer           sdk.AccAddress   `json:"consumer"`
+	Input              string           `json:"input"`
+	ServiceFeeCap      sdk.Coins        `json:"service_fee_cap"`
+	Timeout            int64            `json:"timeout"`
+	SuperMode          bool             `json:"super_mode"`
+	Repeated           bool             `json:"repeated"`
+	RepeatedFrequency  uint64           `json:"repeated_frequency"`
+	RepeatedTotal      int64            `json:"repeated_total"`
+	BatchCounter       uint64           `json:"batch_counter"`
+	BatchRequestCount  uint32           `json:"batch_request_count"`
+	BatchResponseCount uint32           `json:"batch_response_count"`
+	BatchState         string           `json:"batch_state"`
+	State              string           `json:"state"`
+	ResponseThreshold  uint32           `json:"response_threshold"`
+	ModuleName         string           `json:"module_name"`
+}
+
+// QueryRequestContextResponse is the params of service module
+type QueryParamsResponse struct {
+	MaxRequestTimeout    int64         `json:"max_request_timeout"`
+	MinDepositMultiple   int64         `json:"min_deposit_multiple"`
+	MinDeposit           string        `json:"min_deposit"`
+	ServiceFeeTax        string        `json:"service_fee_tax"`
+	SlashFraction        string        `json:"slash_fraction"`
+	ComplaintRetrospect  time.Duration `json:"complaint_retrospect"`
+	ArbitrationTimeLimit time.Duration `json:"arbitration_time_limit"`
+	TxSizeLimit          uint64        `json:"tx_size_limit"`
+	BaseDenom            string        `json:"base_denom"`
 }

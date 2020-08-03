@@ -17,12 +17,12 @@ const (
 	nodeURI = "tcp://localhost:26657"
 	chainID = "test"
 	mode    = types.Commit
-	fee     = "4point"
+	fee     = "4stake"
 	gas     = 200000
 	algo    = "sm2"
 	level   = "info"
 	charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	addr    = "caa1rgnu8grzt6mwnjg7jss7w0sfyjn67g4em9njf5"
+	addr    = "iaa13rtezlhpqms02syv27zc0lqc5nt3z4lcxzd9js"
 )
 
 var (
@@ -66,7 +66,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	s.r = rand.New(rand.NewSource(time.Now().UnixNano()))
 	s.rootAccount = MockAccount{
 		Name:     "v1",
-		Password: "YQVGsOjegu",
+		Password: "1234567890",
 		Address:  types.MustAccAddressFromBech32(addr),
 	}
 	//s.initAccount()

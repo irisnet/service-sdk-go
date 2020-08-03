@@ -5,7 +5,6 @@ import (
 	cdctypes "github.com/irisnet/service-sdk-go/codec/types"
 	"github.com/irisnet/service-sdk-go/modules"
 	"github.com/irisnet/service-sdk-go/modules/service"
-	"github.com/irisnet/service-sdk-go/modules/tendermint"
 	"github.com/irisnet/service-sdk-go/std"
 	"github.com/irisnet/service-sdk-go/types"
 	"github.com/irisnet/service-sdk-go/utils/log"
@@ -19,7 +18,6 @@ type IServiceClient struct {
 	types.TxManager
 	types.TokenConvert
 
-	Tm tendermint.Tm
 	//Token     token.TokenI
 	//Record    record.RecordI
 	//Validator validator.ValidatorI
@@ -44,7 +42,7 @@ func NewIService(cfg types.ClientConfig) IServiceClient {
 		//TxManager:    baseClient,
 		//TokenConvert: baseClient,
 		//
-		//Service:   serviceClient,
+		Service: serviceClient,
 	}
 
 	client.RegisterModule(cdc, interfaceRegistry,

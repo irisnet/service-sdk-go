@@ -2,7 +2,7 @@ package types
 
 const (
 	// prefixChain defines the prefix of this chain
-	prefixChain = "c"
+	prefixChain = "i"
 
 	// PrefixAcc is the prefix for account
 	prefixAccount = "a"
