@@ -38,11 +38,6 @@ func (p paramsQuery) QueryParams(module string, res sdk.Response) sdk.Error {
 	switch module {
 	case service.ModuleName:
 		path = fmt.Sprintf("custom/%s/parameters", module)
-	//case token.ModuleName:
-	//	path = fmt.Sprintf("custom/%s/params", module)
-	//case "auth":
-	//	path = fmt.Sprintf("custom/%s/params",module)
-
 	default:
 		return sdk.Wrapf("unsupported param query")
 	}

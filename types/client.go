@@ -54,7 +54,7 @@ type Logger interface {
 
 type BaseClient interface {
 	TxManager
-	//TokenManager
+	TokenManager
 	KeyManager
 	TmClient
 	Queries

@@ -2,10 +2,11 @@ package crypto
 
 import (
 	"fmt"
-	"github.com/irisnet/service-sdk-go/crypto/hd"
 	"strings"
 
 	cryptoAmino "github.com/tendermint/tendermint/crypto/encoding/amino"
+
+	"github.com/irisnet/service-sdk-go/crypto/hd"
 
 	"github.com/cosmos/go-bip39"
 	"github.com/pkg/errors"

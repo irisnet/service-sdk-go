@@ -1,0 +1,1 @@
+docker build -t csrb-sdk-go .

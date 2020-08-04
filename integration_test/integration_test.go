@@ -19,9 +19,9 @@ const (
 	nodeURI = "tcp://localhost:26657"
 	chainID = "test"
 	mode    = types.Commit
-	fee     = "4stake"
-	gas     = 200000
-	algo    = "secp256k1"
+	//fee     = "4point"
+	gas = 200000
+	//algo    = "sm2"
 	level   = "info"
 	charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	addr    = "iaa13rtezlhpqms02syv27zc0lqc5nt3z4lcxzd9js"
@@ -33,7 +33,7 @@ var (
 
 type IntegrationTestSuite struct {
 	suite.Suite
-	sdk.IServiceClient
+	sdk.CSRBClient
 	r            *rand.Rand
 	rootAccount  MockAccount
 	randAccounts []MockAccount
@@ -64,7 +64,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		panic(err)
 	}
 
-	s.IServiceClient = sdk.NewIService(cfg)
+	s.CSRBClient = sdk.NewCSRBClient(cfg)
 	s.r = rand.New(rand.NewSource(time.Now().UnixNano()))
 	s.rootAccount = MockAccount{
 		Name:     "v1",
@@ -79,12 +79,11 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 }
 
 func (s *IntegrationTestSuite) initAccount() {
-
 	name := s.rootAccount.Name
 	pwd := s.rootAccount.Password
-	//mnemonic := "abstract toe afraid ceiling inform lunch abuse capital hunt rebel once already slot hybrid maximum display snack laptop advance pizza guard fringe box renew"
-	//address, err := s.Key.Recover(name, pwd, mnemonic)
-	address, err := s.Key.Import(name, pwd, string(getPrivKeyArmor()))
+	mnemonic := "abstract toe afraid ceiling inform lunch abuse capital hunt rebel once already slot hybrid maximum display snack laptop advance pizza guard fringe box renew"
+	address, err := s.Key.Recover(name, pwd, mnemonic)
+	//address, err := s.Key.Import(name, pwd, string(getPrivKeyArmor()))
 	if err != nil {
 		panic("generate test account failed")
 	}
@@ -94,6 +93,7 @@ func (s *IntegrationTestSuite) initAccount() {
 		Password: pwd,
 		Address:  types.MustAccAddressFromBech32(address),
 	})
+
 }
 
 // RandStringOfLength return a random string

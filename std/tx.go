@@ -9,11 +9,30 @@ import (
 )
 
 var (
-	_ sdk.Tx = (*Transaction)(nil)
+	_ sdk.Tx                  = (*Transaction)(nil)
+	_ clientx.ClientTx        = (*Transaction)(nil)
+	_ clientx.Generator       = TxGenerator{}
+	_ clientx.ClientFee       = &StdFee{}
+	_ clientx.ClientSignature = &StdSignature{}
 )
 
 // TxGenerator defines a transaction generator that allows clients to construct
 // transactions.
+type TxGenerator struct{}
+
+func (g TxGenerator) NewFee() clientx.ClientFee {
+	return &StdFee{}
+}
+
+func (g TxGenerator) NewSignature() clientx.ClientSignature {
+	return &StdSignature{}
+}
+
+// NewTx returns a reference to an empty Transaction type.
+func (TxGenerator) NewTx() clientx.ClientTx {
+	return &Transaction{}
+}
+
 func NewTransaction(fee StdFee, memo string, sdkMsgs []sdk.Msg) (*Transaction, error) {
 	tx := &Transaction{
 		StdTxBase: NewStdTxBase(fee, nil, memo),

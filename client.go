@@ -1,30 +1,32 @@
 package sdk
 
 import (
+	"io"
+
 	"github.com/irisnet/service-sdk-go/codec"
 	cdctypes "github.com/irisnet/service-sdk-go/codec/types"
 	"github.com/irisnet/service-sdk-go/modules"
+	"github.com/irisnet/service-sdk-go/modules/bank"
 	"github.com/irisnet/service-sdk-go/modules/keys"
 	"github.com/irisnet/service-sdk-go/modules/service"
 	"github.com/irisnet/service-sdk-go/std"
 	"github.com/irisnet/service-sdk-go/types"
 	"github.com/irisnet/service-sdk-go/utils/log"
-	"io"
 )
 
-type IServiceClient struct {
+type CSRBClient struct {
 	logger *log.Logger
 
 	types.WSClient
 	types.TxManager
 	types.TokenConvert
 
+	Bank    bank.BankI
 	Service service.ServiceI
-	//Bank      bank.BankI
-	Key keys.KeyI
+	Key     keys.KeyI
 }
 
-func NewIService(cfg types.ClientConfig) IServiceClient {
+func NewCSRBClient(cfg types.ClientConfig) CSRBClient {
 	//create cdc for encoding and decoding
 	cdc := types.NewCodec()
 	interfaceRegistry := cdctypes.NewInterfaceRegistry()
@@ -32,30 +34,34 @@ func NewIService(cfg types.ClientConfig) IServiceClient {
 
 	//create a instance of baseClient
 	baseClient := modules.NewBaseClient(cfg, appCodec)
-	keysClient := keys.NewClient(baseClient)
-	serviceClient := service.NewClient(baseClient, appCodec)
 
-	client := &IServiceClient{
-		logger:   baseClient.Logger(),
-		WSClient: baseClient,
-		//TxManager:    baseClient,
-		//TokenConvert: baseClient,
-		//
+	bankClient := bank.NewClient(baseClient, appCodec)
+	serviceClient := service.NewClient(baseClient, appCodec)
+	keysClient := keys.NewClient(baseClient)
+
+	client := &CSRBClient{
+		logger:       baseClient.Logger(),
+		WSClient:     baseClient,
+		TxManager:    baseClient,
+		TokenConvert: baseClient,
+
+		Bank:    bankClient,
 		Key:     keysClient,
 		Service: serviceClient,
 	}
 
 	client.RegisterModule(cdc, interfaceRegistry,
+		bankClient,
 		serviceClient,
 	)
 	return *client
 }
 
-func (s *IServiceClient) SetOutput(w io.Writer) {
+func (s *CSRBClient) SetOutput(w io.Writer) {
 	s.logger.SetOutput(w)
 }
 
-func (s *IServiceClient) RegisterModule(cdc *codec.Codec, interfaceRegistry cdctypes.InterfaceRegistry, ms ...types.Module) {
+func (s *CSRBClient) RegisterModule(cdc *codec.Codec, interfaceRegistry cdctypes.InterfaceRegistry, ms ...types.Module) {
 	for _, m := range ms {
 		m.RegisterCodec(cdc)
 		m.RegisterInterfaceTypes(interfaceRegistry)

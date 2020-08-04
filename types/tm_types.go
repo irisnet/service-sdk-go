@@ -2,13 +2,14 @@ package types
 
 import (
 	"encoding/hex"
+	"strings"
+
 	"github.com/tendermint/tendermint/crypto"
 	cryptoAmino "github.com/tendermint/tendermint/crypto/encoding/amino"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	"github.com/tendermint/tendermint/libs/kv"
 	tmclient "github.com/tendermint/tendermint/rpc/client"
 	tmtypes "github.com/tendermint/tendermint/types"
-	"strings"
 )
 
 type (

@@ -10,6 +10,7 @@ require (
 	github.com/gibson042/canonicaljson-go v1.0.3
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/protobuf v1.4.0
+	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/regen-network/cosmos-proto v0.3.0
 	github.com/rs/zerolog v1.18.0

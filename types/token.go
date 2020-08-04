@@ -2,10 +2,10 @@ package types
 
 var (
 	POINT = Token{
-		Symbol:        "stake",
+		Symbol:        "point",
 		Name:          "Network staking token",
 		Scale:         0,
-		MinUnit:       "stake",
+		MinUnit:       "point",
 		InitialSupply: 2000000000,
 		MaxSupply:     1000000000000,
 		Mintable:      true,

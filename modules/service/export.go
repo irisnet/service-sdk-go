@@ -1,38 +1,46 @@
 package service
 
 import (
-	sdk "github.com/irisnet/service-sdk-go/types"
 	"time"
-)
 
-// ServiceI defines a set of interfaces in the service module
-type ServiceI interface {
-	sdk.Module
-	Tx
-	Query
-}
+	sdk "github.com/irisnet/service-sdk-go/types"
+)
 
 // Tx defines a set of transaction interfaces in the service module
 type Tx interface {
 	DefineService(request DefineServiceRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+
 	BindService(request BindServiceRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+
 	InvokeService(request InvokeServiceRequest, baseTx sdk.BaseTx) (requestContextID string, err sdk.Error)
 
-	UpdateServiceBinding(request UpdateServiceBindingRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
-	DisableServiceBinding(serviceName, provider string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
-	EnableServiceBinding(serviceName, provider string, deposit sdk.DecCoins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+	SetWithdrawAddress(withdrawAddress string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
-	PauseRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
-	StartRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
-	KillRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
-	UpdateRequestContext(request UpdateRequestContextRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+	UpdateServiceBinding(request UpdateServiceBindingRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+
+	DisableServiceBinding(serviceName, provider string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+
+	EnableServiceBinding(serviceName, provider string,
+		deposit sdk.DecCoins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
 	RefundServiceDeposit(serviceName, provider string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
-	SetWithdrawAddress(withdrawAddress string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+
+	PauseRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+
+	StartRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+
+	KillRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+
+	UpdateRequestContext(request UpdateRequestContextRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+
 	WithdrawEarnedFees(provider string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
 
-	SubscribeServiceRequest(serviceName string, callback RespondCallback, baseTx sdk.BaseTx) (sdk.Subscription, sdk.Error)
-	SubscribeServiceResponse(reqCtxID string, callback InvokeCallback) (sdk.Subscription, sdk.Error)
+	SubscribeServiceRequest(serviceName string,
+		callback RespondCallback,
+		baseTx sdk.BaseTx) (sdk.Subscription, sdk.Error)
+
+	SubscribeServiceResponse(reqCtxID string,
+		callback InvokeCallback) (sdk.Subscription, sdk.Error)
 }
 
 // Query defines a set of query interfaces in the service module
@@ -54,11 +62,46 @@ type Query interface {
 	QueryParams() (QueryParamsResponse, sdk.Error)
 }
 
+// ServiceI defines a set of interfaces in the service module
+type ServiceI interface {
+	sdk.Module
+	Tx
+	Query
+}
+
 // InvokeCallback defines the callback function for service calls
 type InvokeCallback func(reqCtxID, reqID, responses string)
 
 // RespondCallback defines the callback function of the service response
 type RespondCallback func(reqCtxID, reqID, input string) (output string, result string)
+
+// Registry defines a set of service invocation interfaces
+type Registry map[string]RespondCallback
+
+// Request defines a request which contains the detailed request data
+type QueryServiceRequestResponse struct {
+	ID                         string         `json:"id"`
+	ServiceName                string         `json:"service_name"`
+	Provider                   sdk.AccAddress `json:"provider"`
+	Consumer                   sdk.AccAddress `json:"consumer"`
+	Input                      string         `json:"input"`
+	ServiceFee                 sdk.Coins      `json:"service_fee"`
+	SuperMode                  bool           `json:"super_mode"`
+	RequestHeight              int64          `json:"request_height"`
+	ExpirationHeight           int64          `json:"expiration_height"`
+	RequestContextID           string         `json:"request_context_id"`
+	RequestContextBatchCounter uint64         `json:"request_context_batch_counter"`
+}
+
+// Response defines a response
+type QueryServiceResponseResponse struct {
+	Provider                   sdk.AccAddress `json:"provider"`
+	Consumer                   sdk.AccAddress `json:"consumer"`
+	Output                     string         `json:"output"`
+	Result                     string         `json:"error"`
+	RequestContextID           string         `json:"request_context_id"`
+	RequestContextBatchCounter uint64         `json:"request_context_batch_counter"`
+}
 
 // DefineServiceRequest defines the request parameters of the service definition
 type DefineServiceRequest struct {
@@ -109,29 +152,28 @@ type QueryServiceBindingResponse struct {
 	DisabledTime time.Time      `json:"disabled_time"`
 }
 
-// Request defines a request which contains the detailed request data
-type QueryServiceRequestResponse struct {
-	ID                         string         `json:"id"`
-	ServiceName                string         `json:"service_name"`
-	Provider                   sdk.AccAddress `json:"provider"`
-	Consumer                   sdk.AccAddress `json:"consumer"`
-	Input                      string         `json:"input"`
-	ServiceFee                 sdk.Coins      `json:"service_fee"`
-	SuperMode                  bool           `json:"super_mode"`
-	RequestHeight              int64          `json:"request_height"`
-	ExpirationHeight           int64          `json:"expiration_height"`
-	RequestContextID           string         `json:"request_context_id"`
-	RequestContextBatchCounter uint64         `json:"request_context_batch_counter"`
+// InvokeServiceRequest defines the request parameters of the service call
+type InvokeServiceRequest struct {
+	ServiceName       string       `json:"service_name"`
+	Providers         []string     `json:"providers"`
+	Input             string       `json:"input"`
+	ServiceFeeCap     sdk.DecCoins `json:"service_fee_cap"`
+	Timeout           int64        `json:"timeout"`
+	SuperMode         bool         `json:"super_mode"`
+	Repeated          bool         `json:"repeated"`
+	RepeatedFrequency uint64       `json:"repeated_frequency"`
+	RepeatedTotal     int64        `json:"repeated_total"`
+	Callback          InvokeCallback
 }
 
-// Response defines a response
-type QueryServiceResponseResponse struct {
-	Provider                   sdk.AccAddress `json:"provider"`
-	Consumer                   sdk.AccAddress `json:"consumer"`
-	Output                     string         `json:"output"`
-	Result                     string         `json:"error"`
-	RequestContextID           string         `json:"request_context_id"`
-	RequestContextBatchCounter uint64         `json:"request_context_batch_counter"`
+// UpdateRequestContextRequest defines a message to update a request context
+type UpdateRequestContextRequest struct {
+	RequestContextID  string       `json:"request_context_id"`
+	Providers         []string     `json:"providers"`
+	ServiceFeeCap     sdk.DecCoins `json:"service_fee_cap"`
+	Timeout           int64        `json:"timeout"`
+	RepeatedFrequency uint64       `json:"repeated_frequency"`
+	RepeatedTotal     int64        `json:"repeated_total"`
 }
 
 // QueryRequestContextResponse defines a context which holds request-related data
@@ -155,7 +197,6 @@ type QueryRequestContextResponse struct {
 	ModuleName         string           `json:"module_name"`
 }
 
-// QueryRequestContextResponse is the params of service module
 type QueryParamsResponse struct {
 	MaxRequestTimeout    int64         `json:"max_request_timeout"`
 	MinDepositMultiple   int64         `json:"min_deposit_multiple"`
@@ -166,28 +207,4 @@ type QueryParamsResponse struct {
 	ArbitrationTimeLimit time.Duration `json:"arbitration_time_limit"`
 	TxSizeLimit          uint64        `json:"tx_size_limit"`
 	BaseDenom            string        `json:"base_denom"`
-}
-
-// InvokeServiceRequest defines the request parameters of the service call
-type InvokeServiceRequest struct {
-	ServiceName       string       `json:"service_name"`
-	Providers         []string     `json:"providers"`
-	Input             string       `json:"input"`
-	ServiceFeeCap     sdk.DecCoins `json:"service_fee_cap"`
-	Timeout           int64        `json:"timeout"`
-	SuperMode         bool         `json:"super_mode"`
-	Repeated          bool         `json:"repeated"`
-	RepeatedFrequency uint64       `json:"repeated_frequency"`
-	RepeatedTotal     int64        `json:"repeated_total"`
-	Callback          InvokeCallback
-}
-
-// UpdateRequestContextRequest defines a message to update a request context
-type UpdateRequestContextRequest struct {
-	RequestContextID  string       `json:"request_context_id"`
-	Providers         []string     `json:"providers"`
-	ServiceFeeCap     sdk.DecCoins `json:"service_fee_cap"`
-	Timeout           int64        `json:"timeout"`
-	RepeatedFrequency uint64       `json:"repeated_frequency"`
-	RepeatedTotal     int64        `json:"repeated_total"`
 }

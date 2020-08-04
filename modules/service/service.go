@@ -2,10 +2,12 @@ package service
 
 import (
 	"encoding/json"
+	"strings"
+
 	"github.com/irisnet/service-sdk-go/codec"
 	"github.com/irisnet/service-sdk-go/codec/types"
+
 	sdk "github.com/irisnet/service-sdk-go/types"
-	"strings"
 )
 
 type serviceClient struct {
@@ -29,6 +31,18 @@ func (s serviceClient) RegisterInterfaceTypes(registry types.InterfaceRegistry) 
 		(*sdk.Msg)(nil),
 		&MsgDefineService{},
 		&MsgBindService{},
+		&MsgUpdateServiceBinding{},
+		&MsgSetWithdrawAddress{},
+		&MsgDisableServiceBinding{},
+		&MsgEnableServiceBinding{},
+		&MsgRefundServiceDeposit{},
+		&MsgCallService{},
+		&MsgRespondService{},
+		&MsgPauseRequestContext{},
+		&MsgStartRequestContext{},
+		&MsgKillRequestContext{},
+		&MsgUpdateRequestContext{},
+		&MsgWithdrawEarnedFees{},
 	)
 }
 
@@ -78,62 +92,6 @@ func (s serviceClient) BindService(request BindServiceRequest, baseTx sdk.BaseTx
 		Owner:       owner,
 	}
 	return s.BuildAndSend([]sdk.Msg{msg}, baseTx)
-}
-
-//InvokeService is responsible for invoke a new service and callback `handler`
-func (s serviceClient) InvokeService(request InvokeServiceRequest, baseTx sdk.BaseTx) (string, sdk.Error) {
-	consumer, err := s.QueryAddress(baseTx.From, baseTx.Password)
-	if err != nil {
-		return "", sdk.Wrap(err)
-	}
-
-	var providers []sdk.AccAddress
-	for _, provider := range request.Providers {
-		p, err := sdk.AccAddressFromBech32(provider)
-		if err != nil {
-			return "", sdk.Wrapf("%s invalid address", p)
-		}
-		providers = append(providers, p)
-	}
-
-	amt, err := s.ToMinCoin(request.ServiceFeeCap...)
-	if err != nil {
-		return "", sdk.Wrap(err)
-	}
-
-	msg := MsgCallService{
-		ServiceName:       request.ServiceName,
-		Providers:         providers,
-		Consumer:          consumer,
-		Input:             request.Input,
-		ServiceFeeCap:     amt,
-		Timeout:           request.Timeout,
-		SuperMode:         request.SuperMode,
-		Repeated:          request.Repeated,
-		RepeatedFrequency: request.RepeatedFrequency,
-		RepeatedTotal:     request.RepeatedTotal,
-	}
-
-	//mode must be set to commit
-	baseTx.Mode = sdk.Commit
-
-	result, err := s.BuildAndSend([]sdk.Msg{msg}, baseTx)
-	if err != nil {
-		return "", sdk.Wrap(err)
-	}
-
-	reqCtxID, e := result.Events.GetValue(sdk.EventTypeMessage, attributeKeyRequestContextID)
-	if e != nil {
-		return reqCtxID, sdk.Wrap(e)
-	}
-
-	if request.Callback == nil {
-		return reqCtxID, nil
-	}
-
-	// TODO SubscribeServiceResponse
-	//_, err = s.SubscribeServiceResponse(reqCtxID, request.Callback)
-	return reqCtxID, sdk.Wrap(err)
 }
 
 //UpdateServiceBinding updates the specified service binding
@@ -219,6 +177,140 @@ func (s serviceClient) EnableServiceBinding(serviceName, provider string, deposi
 	return s.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
+//InvokeService is responsible for invoke a new service and callback `handler`
+func (s serviceClient) InvokeService(request InvokeServiceRequest, baseTx sdk.BaseTx) (string, sdk.Error) {
+	consumer, err := s.QueryAddress(baseTx.From, baseTx.Password)
+	if err != nil {
+		return "", sdk.Wrap(err)
+	}
+
+	var providers []sdk.AccAddress
+	for _, provider := range request.Providers {
+		p, err := sdk.AccAddressFromBech32(provider)
+		if err != nil {
+			return "", sdk.Wrapf("%s invalid address", p)
+		}
+		providers = append(providers, p)
+	}
+
+	amt, err := s.ToMinCoin(request.ServiceFeeCap...)
+	if err != nil {
+		return "", sdk.Wrap(err)
+	}
+
+	msg := MsgCallService{
+		ServiceName:       request.ServiceName,
+		Providers:         providers,
+		Consumer:          consumer,
+		Input:             request.Input,
+		ServiceFeeCap:     amt,
+		Timeout:           request.Timeout,
+		SuperMode:         request.SuperMode,
+		Repeated:          request.Repeated,
+		RepeatedFrequency: request.RepeatedFrequency,
+		RepeatedTotal:     request.RepeatedTotal,
+	}
+
+	//mode must be set to commit
+	baseTx.Mode = sdk.Commit
+
+	result, err := s.BuildAndSend([]sdk.Msg{msg}, baseTx)
+	if err != nil {
+		return "", sdk.Wrap(err)
+	}
+
+	reqCtxID, e := result.Events.GetValue(sdk.EventTypeMessage, attributeKeyRequestContextID)
+	if e != nil {
+		return reqCtxID, sdk.Wrap(e)
+	}
+
+	if request.Callback == nil {
+		return reqCtxID, nil
+	}
+
+	_, err = s.SubscribeServiceResponse(reqCtxID, request.Callback)
+	return reqCtxID, sdk.Wrap(err)
+}
+
+func (s serviceClient) SubscribeServiceResponse(reqCtxID string,
+	callback InvokeCallback) (subscription sdk.Subscription, err sdk.Error) {
+	if len(reqCtxID) == 0 {
+		return subscription, sdk.Wrapf("reqCtxID %s should not be empty", reqCtxID)
+	}
+
+	builder := sdk.NewEventQueryBuilder().
+		AddCondition(sdk.NewCond(sdk.EventTypeMessage, attributeKeyRequestContextID).
+			EQ(sdk.EventValue(reqCtxID)))
+
+	return s.SubscribeTx(builder, func(tx sdk.EventDataTx) {
+		s.Logger().Debug().
+			Str("tx_hash", tx.Hash).
+			Int64("height", tx.Height).
+			Str("reqCtxID", reqCtxID).
+			Msg("consumer received response transaction sent by provider")
+		for _, msg := range tx.Tx.Msgs {
+			msg, ok := msg.(MsgRespondService)
+			if ok {
+				reqCtxID2, _, _, _, err := splitRequestID(msg.RequestID.String())
+				if err != nil {
+					s.Logger().Err(err).
+						Str("requestID", msg.RequestID.String()).
+						Msg("invalid requestID")
+					continue
+				}
+				if reqCtxID2.String() == strings.ToUpper(reqCtxID) {
+					callback(reqCtxID, msg.RequestID.String(), msg.Output)
+				}
+			}
+		}
+		reqCtx, err := s.QueryRequestContext(reqCtxID)
+		if err != nil || reqCtx.State == RequestContextStateToStringMap[COMPLETED] {
+			_ = s.Unsubscribe(subscription)
+		}
+	})
+}
+
+// SetWithdrawAddress sets a new withdrawal address for the specified service binding
+func (s serviceClient) SetWithdrawAddress(withdrawAddress string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
+	owner, err := s.QueryAddress(baseTx.From, baseTx.Password)
+	if err != nil {
+		return sdk.ResultTx{}, sdk.Wrap(err)
+	}
+
+	withdrawAddr, err := sdk.AccAddressFromBech32(withdrawAddress)
+	if err != nil {
+		return sdk.ResultTx{}, sdk.Wrapf("%s invalid address", withdrawAddress)
+	}
+	msg := MsgSetWithdrawAddress{
+		Owner:           owner,
+		WithdrawAddress: withdrawAddr,
+	}
+	return s.BuildAndSend([]sdk.Msg{msg}, baseTx)
+}
+
+// RefundServiceDeposit refunds the deposit from the specified service binding
+func (s serviceClient) RefundServiceDeposit(serviceName, provider string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
+	owner, err := s.QueryAddress(baseTx.From, baseTx.Password)
+	if err != nil {
+		return sdk.ResultTx{}, sdk.Wrap(err)
+	}
+
+	var providerAddr sdk.AccAddress
+	if len(provider) > 0 {
+		providerAddr, err = sdk.AccAddressFromBech32(provider)
+		if err != nil {
+			return sdk.ResultTx{}, sdk.Wrap(err)
+		}
+	}
+
+	msg := MsgRefundServiceDeposit{
+		ServiceName: serviceName,
+		Provider:    providerAddr,
+		Owner:       owner,
+	}
+	return s.BuildAndSend([]sdk.Msg{msg}, baseTx)
+}
+
 // StartRequestContext starts the specified request context
 func (s serviceClient) StartRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	consumer, err := s.QueryAddress(baseTx.From, baseTx.Password)
@@ -291,47 +383,6 @@ func (s serviceClient) UpdateRequestContext(request UpdateRequestContextRequest,
 	return s.BuildAndSend([]sdk.Msg{msg}, baseTx)
 }
 
-// RefundServiceDeposit refunds the deposit from the specified service binding
-func (s serviceClient) RefundServiceDeposit(serviceName, provider string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
-	owner, err := s.QueryAddress(baseTx.From, baseTx.Password)
-	if err != nil {
-		return sdk.ResultTx{}, sdk.Wrap(err)
-	}
-
-	var providerAddr sdk.AccAddress
-	if len(provider) > 0 {
-		providerAddr, err = sdk.AccAddressFromBech32(provider)
-		if err != nil {
-			return sdk.ResultTx{}, sdk.Wrap(err)
-		}
-	}
-
-	msg := MsgRefundServiceDeposit{
-		ServiceName: serviceName,
-		Provider:    providerAddr,
-		Owner:       owner,
-	}
-	return s.BuildAndSend([]sdk.Msg{msg}, baseTx)
-}
-
-// SetWithdrawAddress sets a new withdrawal address for the specified service binding
-func (s serviceClient) SetWithdrawAddress(withdrawAddress string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
-	owner, err := s.QueryAddress(baseTx.From, baseTx.Password)
-	if err != nil {
-		return sdk.ResultTx{}, sdk.Wrap(err)
-	}
-
-	withdrawAddr, err := sdk.AccAddressFromBech32(withdrawAddress)
-	if err != nil {
-		return sdk.ResultTx{}, sdk.Wrapf("%s invalid address", withdrawAddress)
-	}
-	msg := MsgSetWithdrawAddress{
-		Owner:           owner,
-		WithdrawAddress: withdrawAddr,
-	}
-	return s.BuildAndSend([]sdk.Msg{msg}, baseTx)
-}
-
 // WithdrawEarnedFees withdraws the earned fees to the specified provider
 func (s serviceClient) WithdrawEarnedFees(provider string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	owner, err := s.QueryAddress(baseTx.From, baseTx.Password)
@@ -365,7 +416,7 @@ func (s serviceClient) SubscribeServiceRequest(serviceName string,
 
 	builder := sdk.NewEventQueryBuilder().
 		AddCondition(sdk.NewCond(eventTypeNewBatchRequestProvider, attributeKeyProvider).
-			EQ(sdk.EventValue(provider.String()))).
+			EQ(sdk.EventValue(provider.String()))). //TODO
 		AddCondition(sdk.NewCond(eventTypeNewBatchRequest, attributeKeyServiceName).
 			EQ(sdk.EventValue(serviceName)),
 		)
@@ -377,46 +428,7 @@ func (s serviceClient) SubscribeServiceRequest(serviceName string,
 	})
 }
 
-func (s serviceClient) SubscribeServiceResponse(reqCtxID string,
-	callback InvokeCallback) (subscription sdk.Subscription, err sdk.Error) {
-	if len(reqCtxID) == 0 {
-		return subscription, sdk.Wrapf("reqCtxID %s should not be empty", reqCtxID)
-	}
-
-	builder := sdk.NewEventQueryBuilder().
-		AddCondition(sdk.NewCond(sdk.EventTypeMessage, attributeKeyRequestContextID).
-			EQ(sdk.EventValue(reqCtxID)))
-
-	return s.SubscribeTx(builder, func(tx sdk.EventDataTx) {
-		s.Logger().Debug().
-			Str("tx_hash", tx.Hash).
-			Int64("height", tx.Height).
-			Str("reqCtxID", reqCtxID).
-			Msg("consumer received response transaction sent by provider")
-		for _, msg := range tx.Tx.Msgs {
-			msg, ok := msg.(MsgRespondService)
-			if ok {
-				reqCtxID2, _, _, _, err := splitRequestID(msg.RequestID.String())
-				if err != nil {
-					s.Logger().Err(err).
-						Str("requestID", msg.RequestID.String()).
-						Msg("invalid requestID")
-					continue
-				}
-				if reqCtxID2.String() == strings.ToUpper(reqCtxID) {
-					callback(reqCtxID, msg.RequestID.String(), msg.Output)
-				}
-			}
-		}
-		reqCtx, err := s.QueryRequestContext(reqCtxID)
-		if err != nil || reqCtx.State == RequestContextStateToStringMap[COMPLETED] {
-			_ = s.Unsubscribe(subscription)
-		}
-	})
-}
-
-//==========================================Query===========================================
-
+// QueryDefinition return a service definition of the specified name
 func (s serviceClient) QueryServiceDefinition(serviceName string) (QueryServiceDefinitionResponse, sdk.Error) {
 	param := struct {
 		ServiceName string
@@ -431,6 +443,7 @@ func (s serviceClient) QueryServiceDefinition(serviceName string) (QueryServiceD
 	return definition.Convert().(QueryServiceDefinitionResponse), nil
 }
 
+// QueryBinding return the specified service binding
 func (s serviceClient) QueryServiceBinding(serviceName string, provider sdk.AccAddress) (QueryServiceBindingResponse, sdk.Error) {
 	param := struct {
 		ServiceName string
@@ -472,8 +485,7 @@ func (s serviceClient) QueryServiceRequest(requestID string) (QueryServiceReques
 
 	var request Request
 	if err := s.QueryWithResponse("custom/service/request", param, &request); request.Empty() {
-		// TODO if request.Empty()
-		//request, err = s.queryRequestByTxQuery(requestID)
+		request, err = s.queryRequestByTxQuery(requestID)
 		if err != nil {
 			return QueryServiceRequestResponse{}, sdk.Wrap(err)
 		}
@@ -525,8 +537,7 @@ func (s serviceClient) QueryServiceResponse(requestID string) (QueryServiceRespo
 
 	var response Response
 	if err := s.QueryWithResponse("custom/service/response", param, &response); response.Empty() {
-		// TODO if response.Empty()
-		//response, err = s.queryResponseByTxQuery(requestID)
+		response, err = s.queryResponseByTxQuery(requestID)
 		if err != nil {
 			return QueryServiceResponseResponse{}, sdk.Wrap(nil)
 		}
@@ -560,8 +571,7 @@ func (s serviceClient) QueryRequestContext(reqCtxID string) (QueryRequestContext
 
 	var reqCtx RequestContext
 	if err := s.QueryWithResponse("custom/service/context", param, &reqCtx); reqCtx.Empty() {
-		// TODO if reqCtx.Empty()
-		//reqCtx, err = s.queryRequestContextByTxQuery(reqCtxID)
+		reqCtx, err = s.queryRequestContextByTxQuery(reqCtxID)
 		if err != nil {
 			return QueryRequestContextResponse{}, sdk.Wrap(err)
 		}

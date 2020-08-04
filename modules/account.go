@@ -2,11 +2,11 @@ package modules
 
 import (
 	"fmt"
-	"github.com/irisnet/service-sdk-go/modules/bank"
 	"time"
 
 	"github.com/irisnet/service-sdk-go/codec"
 
+	"github.com/irisnet/service-sdk-go/modules/bank"
 	sdk "github.com/irisnet/service-sdk-go/types"
 	"github.com/irisnet/service-sdk-go/utils/cache"
 	"github.com/irisnet/service-sdk-go/utils/log"
