@@ -1,8 +1,10 @@
 package integration_test
 
 import (
+	"io/ioutil"
 	"math/rand"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -19,7 +21,7 @@ const (
 	mode    = types.Commit
 	fee     = "4stake"
 	gas     = 200000
-	algo    = "sm2"
+	algo    = "secp256k1"
 	level   = "info"
 	charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	addr    = "iaa13rtezlhpqms02syv27zc0lqc5nt3z4lcxzd9js"
@@ -69,69 +71,61 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		Password: "1234567890",
 		Address:  types.MustAccAddressFromBech32(addr),
 	}
-	//s.initAccount()
+	s.initAccount()
 }
 
 func (s *IntegrationTestSuite) TearDownSuite() {
 	_ = os.Remove(path)
 }
 
-//
-//func (s *IntegrationTestSuite) initAccount() {
-//	_, err := s.Key.Import(s.Account().Name,
-//		s.Account().Password,
-//		string(getPrivKeyArmor()))
-//	if err != nil {
-//		panic(err)
-//	}
-//
-//	//var receipts bank.Receipts
-//	for i := 0; i < 5; i++ {
-//		name := s.RandStringOfLength(10)
-//		pwd := s.RandStringOfLength(16)
-//		address, _, err := s.Key.Add(name, "11111111")
-//		if err != nil {
-//			panic("generate test account failed")
-//		}
-//
-//		s.randAccounts = append(s.randAccounts, MockAccount{
-//			Name:     name,
-//			Password: pwd,
-//			Address:  types.MustAccAddressFromBech32(address),
-//		})
-//	}
-//}
-//
-//// RandStringOfLength return a random string
-//func (s *IntegrationTestSuite) RandStringOfLength(l int) string {
-//	var result []byte
-//	bytes := []byte(charset)
-//	for i := 0; i < l; i++ {
-//		result = append(result, bytes[s.r.Intn(len(bytes))])
-//	}
-//	return string(result)
-//}
-//
-//// GetRandAccount return a random test account
-//func (s *IntegrationTestSuite) GetRandAccount() MockAccount {
-//	return s.randAccounts[s.r.Intn(len(s.randAccounts))]
-//}
-//
-//// Account return a test account
-//func (s *IntegrationTestSuite) Account() MockAccount {
-//	return s.rootAccount
-//}
-//
-//func getPrivKeyArmor() []byte {
-//	path, err := os.Getwd()
-//	if err != nil {
-//		panic(err)
-//	}
-//	path = filepath.Dir(path)
-//	path = filepath.Join(path, "integration_test/scripts/priv.key")
-//	bz, err := ioutil.ReadFile(path)
-//	if err != nil {
-//		panic(err)
-//	}
-//	return bz
-//}
+func (s *IntegrationTestSuite) initAccount() {
+
+	name := s.rootAccount.Name
+	pwd := s.rootAccount.Password
+	//mnemonic := "abstract toe afraid ceiling inform lunch abuse capital hunt rebel once already slot hybrid maximum display snack laptop advance pizza guard fringe box renew"
+	//address, err := s.Key.Recover(name, pwd, mnemonic)
+	address, err := s.Key.Import(name, pwd, string(getPrivKeyArmor()))
+	if err != nil {
+		panic("generate test account failed")
+	}
+
+	s.randAccounts = append(s.randAccounts, MockAccount{
+		Name:     name,
+		Password: pwd,
+		Address:  types.MustAccAddressFromBech32(address),
+	})
+}
+
+// RandStringOfLength return a random string
+func (s *IntegrationTestSuite) RandStringOfLength(l int) string {
+	var result []byte
+	bytes := []byte(charset)
+	for i := 0; i < l; i++ {
+		result = append(result, bytes[s.r.Intn(len(bytes))])
+	}
+	return string(result)
+}
+
+// GetRandAccount return a random test account
+func (s *IntegrationTestSuite) GetRandAccount() MockAccount {
+	return s.randAccounts[s.r.Intn(len(s.randAccounts))]
+}
+
+// Account return a test account
+func (s *IntegrationTestSuite) Account() MockAccount {
+	return s.rootAccount
+}
+
+func getPrivKeyArmor() []byte {
+	path, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	path = filepath.Dir(path)
+	path = filepath.Join(path, "integration_test/scripts/priv.key")
+	bz, err := ioutil.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+	return bz
+}

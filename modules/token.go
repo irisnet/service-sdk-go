@@ -2,6 +2,7 @@ package modules
 
 import (
 	"fmt"
+	"strings"
 
 	sdk "github.com/irisnet/service-sdk-go/types"
 	"github.com/irisnet/service-sdk-go/utils/cache"
@@ -15,26 +16,24 @@ type tokenQuery struct {
 }
 
 func (l tokenQuery) QueryToken(denom string) (sdk.Token, error) {
-	//denom = strings.ToLower(denom)
-	//if t, err := l.Get(l.prefixKey(denom)); err == nil {
-	//	return t.(sdk.Token), nil
-	//}
-	//
-	//param := struct {
-	//	Denom string
-	//}{
-	//	Denom: denom,
-	//}
-	//
-	//var t token.Token
-	//if err := l.q.QueryWithResponse("custom/token/token", param, &t); err != nil {
-	//	return sdk.Token{}, err
-	//}
-	//
-	//token := t.Convert().(sdk.Token)
-	//l.SaveTokens(token)
-	//return token, nil
-	return sdk.Token{}, nil
+	denom = strings.ToLower(denom)
+	if t, err := l.Get(l.prefixKey(denom)); err == nil {
+		return t.(sdk.Token), nil
+	}
+
+	param := struct {
+		Denom string
+	}{
+		Denom: denom,
+	}
+
+	var token sdk.Token
+	if err := l.q.QueryWithResponse("custom/token/token", param, &token); err != nil {
+		return sdk.Token{}, err
+	}
+
+	l.SaveTokens(token)
+	return token, nil
 }
 
 func (l tokenQuery) SaveTokens(tokens ...sdk.Token) {

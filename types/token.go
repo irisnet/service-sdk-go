@@ -24,6 +24,10 @@ type Token struct {
 	Owner         string `json:"owner"`
 }
 
+func (t Token) Convert() interface{} {
+	return t
+}
+
 // GetCoinType returns CnType
 func (t Token) GetCoinType() CoinType {
 	return CoinType{

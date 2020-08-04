@@ -4,6 +4,7 @@ import (
 	"github.com/irisnet/service-sdk-go/codec"
 	cdctypes "github.com/irisnet/service-sdk-go/codec/types"
 	"github.com/irisnet/service-sdk-go/modules"
+	"github.com/irisnet/service-sdk-go/modules/keys"
 	"github.com/irisnet/service-sdk-go/modules/service"
 	"github.com/irisnet/service-sdk-go/std"
 	"github.com/irisnet/service-sdk-go/types"
@@ -18,12 +19,9 @@ type IServiceClient struct {
 	types.TxManager
 	types.TokenConvert
 
-	//Token     token.TokenI
-	//Record    record.RecordI
-	//Validator validator.ValidatorI
-	//Identity  identity.IdentityI
 	Service service.ServiceI
-	//Key     keys.KeyI
+	//Bank      bank.BankI
+	Key keys.KeyI
 }
 
 func NewIService(cfg types.ClientConfig) IServiceClient {
@@ -34,6 +32,7 @@ func NewIService(cfg types.ClientConfig) IServiceClient {
 
 	//create a instance of baseClient
 	baseClient := modules.NewBaseClient(cfg, appCodec)
+	keysClient := keys.NewClient(baseClient)
 	serviceClient := service.NewClient(baseClient, appCodec)
 
 	client := &IServiceClient{
@@ -42,6 +41,7 @@ func NewIService(cfg types.ClientConfig) IServiceClient {
 		//TxManager:    baseClient,
 		//TokenConvert: baseClient,
 		//
+		Key:     keysClient,
 		Service: serviceClient,
 	}
 

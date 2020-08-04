@@ -70,11 +70,11 @@ func NewBaseClient(cfg sdk.ClientConfig, cdc *std.Codec) sdk.BaseClient {
 		expiration: cacheExpirePeriod,
 	}
 
-	//base.tokenQuery = tokenQuery{
-	//	q:      base,
-	//	Logger: base.Logger(),
-	//	Cache:  c,
-	//}
+	base.tokenQuery = tokenQuery{
+		q:      base,
+		Logger: base.Logger(),
+		Cache:  c,
+	}
 
 	base.paramsQuery = paramsQuery{
 		Queries:    base,

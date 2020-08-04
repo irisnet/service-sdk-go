@@ -2,6 +2,7 @@ package modules
 
 import (
 	"fmt"
+	"github.com/irisnet/service-sdk-go/modules/bank"
 	"time"
 
 	"github.com/irisnet/service-sdk-go/codec"
@@ -48,7 +49,7 @@ func (a accountQuery) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) 
 	}
 
 	param := struct {
-		Address sdk.AccAddress `json:"account"`
+		Address sdk.AccAddress `json:"address"`
 	}{
 		Address: addr,
 	}
@@ -57,7 +58,7 @@ func (a accountQuery) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) 
 	if er != nil {
 		return sdk.BaseAccount{}, sdk.Wrap(er)
 	}
-	var account sdk.BaseAccount
+	var account bank.BaseAccount
 	if err := a.cdc.UnmarshalJSON(bz, &account); err != nil {
 		return sdk.BaseAccount{}, sdk.Wrap(err)
 	}
@@ -65,7 +66,7 @@ func (a accountQuery) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) 
 	a.Debug().
 		Str("address", address).
 		Msg("query account from chain")
-	return account, nil
+	return account.Convert().(sdk.BaseAccount), nil
 }
 
 func (a accountQuery) QueryAddress(name, password string) (sdk.AccAddress, sdk.Error) {

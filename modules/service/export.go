@@ -8,8 +8,31 @@ import (
 // ServiceI defines a set of interfaces in the service module
 type ServiceI interface {
 	sdk.Module
-	//Tx
+	Tx
 	Query
+}
+
+// Tx defines a set of transaction interfaces in the service module
+type Tx interface {
+	DefineService(request DefineServiceRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+	BindService(request BindServiceRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+	InvokeService(request InvokeServiceRequest, baseTx sdk.BaseTx) (requestContextID string, err sdk.Error)
+
+	UpdateServiceBinding(request UpdateServiceBindingRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+	DisableServiceBinding(serviceName, provider string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+	EnableServiceBinding(serviceName, provider string, deposit sdk.DecCoins, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+
+	PauseRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+	StartRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+	KillRequestContext(requestContextID string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+	UpdateRequestContext(request UpdateRequestContextRequest, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+
+	RefundServiceDeposit(serviceName, provider string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+	SetWithdrawAddress(withdrawAddress string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+	WithdrawEarnedFees(provider string, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error)
+
+	SubscribeServiceRequest(serviceName string, callback RespondCallback, baseTx sdk.BaseTx) (sdk.Subscription, sdk.Error)
+	SubscribeServiceResponse(reqCtxID string, callback InvokeCallback) (sdk.Subscription, sdk.Error)
 }
 
 // Query defines a set of query interfaces in the service module
@@ -31,6 +54,21 @@ type Query interface {
 	QueryParams() (QueryParamsResponse, sdk.Error)
 }
 
+// InvokeCallback defines the callback function for service calls
+type InvokeCallback func(reqCtxID, reqID, responses string)
+
+// RespondCallback defines the callback function of the service response
+type RespondCallback func(reqCtxID, reqID, input string) (output string, result string)
+
+// DefineServiceRequest defines the request parameters of the service definition
+type DefineServiceRequest struct {
+	ServiceName       string   `json:"service_name"`
+	Description       string   `json:"description"`
+	Tags              []string `json:"tags"`
+	AuthorDescription string   `json:"author_description"`
+	Schemas           string   `json:"schemas"`
+}
+
 // QueryServiceDefinitionResponse represents a service definition
 type QueryServiceDefinitionResponse struct {
 	Name              string         `json:"name"`
@@ -43,6 +81,15 @@ type QueryServiceDefinitionResponse struct {
 
 // BindServiceRequest defines the request parameters of the service binding
 type BindServiceRequest struct {
+	ServiceName string       `json:"service_name"`
+	Deposit     sdk.DecCoins `json:"deposit"`
+	Pricing     string       `json:"pricing"`
+	QoS         uint64       `json:"Qos"`
+	Provider    string       `json:"provider"`
+}
+
+// UpdateServiceBindingRequest defines a message to update a service binding
+type UpdateServiceBindingRequest struct {
 	ServiceName string       `json:"service_name"`
 	Deposit     sdk.DecCoins `json:"deposit"`
 	Pricing     string       `json:"pricing"`
@@ -119,4 +166,28 @@ type QueryParamsResponse struct {
 	ArbitrationTimeLimit time.Duration `json:"arbitration_time_limit"`
 	TxSizeLimit          uint64        `json:"tx_size_limit"`
 	BaseDenom            string        `json:"base_denom"`
+}
+
+// InvokeServiceRequest defines the request parameters of the service call
+type InvokeServiceRequest struct {
+	ServiceName       string       `json:"service_name"`
+	Providers         []string     `json:"providers"`
+	Input             string       `json:"input"`
+	ServiceFeeCap     sdk.DecCoins `json:"service_fee_cap"`
+	Timeout           int64        `json:"timeout"`
+	SuperMode         bool         `json:"super_mode"`
+	Repeated          bool         `json:"repeated"`
+	RepeatedFrequency uint64       `json:"repeated_frequency"`
+	RepeatedTotal     int64        `json:"repeated_total"`
+	Callback          InvokeCallback
+}
+
+// UpdateRequestContextRequest defines a message to update a request context
+type UpdateRequestContextRequest struct {
+	RequestContextID  string       `json:"request_context_id"`
+	Providers         []string     `json:"providers"`
+	ServiceFeeCap     sdk.DecCoins `json:"service_fee_cap"`
+	Timeout           int64        `json:"timeout"`
+	RepeatedFrequency uint64       `json:"repeated_frequency"`
+	RepeatedTotal     int64        `json:"repeated_total"`
 }

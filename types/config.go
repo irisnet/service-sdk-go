@@ -8,12 +8,13 @@ import (
 )
 
 const (
-	defaultGas           = 200000
-	defaultFees          = "4point"
-	defaultTimeout       = 5
-	defaultLevel         = "info"
-	defaultMaxTxsBytes   = 1073741824
-	defaultAlgo          = "sm2"
+	defaultGas         = 200000
+	defaultFees        = "10stake"
+	defaultTimeout     = 5
+	defaultLevel       = "info"
+	defaultMaxTxsBytes = 1073741824
+	//defaultAlgo          = "sm2"
+	defaultAlgo          = "secp256k1"
 	defaultMode          = Sync
 	defaultPath          = "$HOME/csrb-sdk-go/leveldb"
 	defaultGasAdjustment = 1.0

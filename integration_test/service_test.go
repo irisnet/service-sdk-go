@@ -1,6 +1,10 @@
 package integration_test
 
-import "github.com/stretchr/testify/require"
+import (
+	"github.com/irisnet/service-sdk-go/modules/service"
+	sdk "github.com/irisnet/service-sdk-go/types"
+	"github.com/stretchr/testify/require"
+)
 
 func (s IntegrationTestSuite) TestQuery() {
 	//serviceName := "assettransfer"
@@ -47,4 +51,52 @@ func (s IntegrationTestSuite) TestQuery() {
 	params, err := s.Service.QueryParams()
 	require.NoError(s.T(), err)
 	require.NotEmpty(s.T(), params)
+}
+
+func (s IntegrationTestSuite) TestTx() {
+	schemas := `{"input":{"type":"object"},"output":{"type":"object"},"error":{"type":"object"}}`
+
+	baseTx := sdk.BaseTx{
+		From: s.rootAccount.Name,
+		Gas:  200000,
+		//Memo:     "test",
+		Mode:     sdk.Commit,
+		Password: s.rootAccount.Password,
+	}
+
+	definition := service.DefineServiceRequest{
+		ServiceName:       "assettransfer",
+		Description:       "asset transfer",
+		Tags:              nil,
+		AuthorDescription: "tester",
+		Schemas:           schemas,
+	}
+	result, err := s.Service.DefineService(definition, baseTx)
+	require.NoError(s.T(), err)
+	require.NotEmpty(s.T(), result.Hash)
+}
+
+func (s IntegrationTestSuite) TestBind() {
+	pricing := `{"price":"1stake"}`
+
+	baseTx := sdk.BaseTx{
+		From:     s.Account().Name,
+		Gas:      200000,
+		Mode:     sdk.Commit,
+		Password: s.Account().Password,
+	}
+
+	deposit, e := sdk.ParseDecCoins("20000stake")
+	require.NoError(s.T(), e)
+
+	binding := service.BindServiceRequest{
+		ServiceName: "test0804",
+		Deposit:     deposit,
+		Pricing:     pricing,
+		QoS:         1,
+	}
+	result, err := s.Service.BindService(binding, baseTx)
+	require.NoError(s.T(), err)
+	require.NotEmpty(s.T(), result.Hash)
+
 }

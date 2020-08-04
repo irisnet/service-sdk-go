@@ -187,8 +187,8 @@ func registerCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgSend{}, "cosmos-sdk/MsgSend", nil)
 	cdc.RegisterConcrete(MsgMultiSend{}, "cosmos-sdk/MsgMultiSend", nil)
 
-	//cdc.RegisterInterface((*Account)(nil), nil)
-	//cdc.RegisterConcrete(&BaseAccount{}, "cosmos-sdk/Account", nil)
+	cdc.RegisterInterface((*Account)(nil), nil)
+	cdc.RegisterConcrete(&BaseAccount{}, "cosmos-sdk/BaseAccount", nil)
 	cdc.RegisterInterface((*crypto.PubKey)(nil), nil)
 	cdc.RegisterConcrete(ed25519.PubKeyEd25519{},
 		ed25519.PubKeyAminoName, nil)
