@@ -28,7 +28,7 @@ const (
 )
 
 var (
-	path = os.ExpandEnv("$HOME/.csrbcli")
+	path = os.ExpandEnv("$HOME/.iriscli")
 )
 
 type IntegrationTestSuite struct {

@@ -5,6 +5,7 @@ import (
 )
 
 type KeyI interface {
+	sdk.Module
 	Add(name, password string) (address string, mnemonic string, err sdk.Error)
 	Recover(name, password, mnemonic string) (address string, err sdk.Error)
 	Import(name, password, privKeyArmor string) (address string, err sdk.Error)

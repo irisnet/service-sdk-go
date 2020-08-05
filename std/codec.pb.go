@@ -7,7 +7,7 @@ import (
 	fmt "fmt"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
-	bank "github.com/irisnet/service-sdk-go/modules/bank"
+	keys "github.com/irisnet/service-sdk-go/modules/keys"
 	github_com_irisnet_service_sdk_go_types "github.com/irisnet/service-sdk-go/types"
 	types "github.com/irisnet/service-sdk-go/types"
 	_ "github.com/regen-network/cosmos-proto"
@@ -118,7 +118,7 @@ type isMessage_Sum interface {
 }
 
 type Message_MsgSend struct {
-	MsgSend *bank.MsgSend `protobuf:"bytes,1,opt,name=msg_send,json=msgSend,proto3,oneof" json:"msg_send,omitempty"`
+	MsgSend *keys.MsgSend `protobuf:"bytes,1,opt,name=msg_send,json=msgSend,proto3,oneof" json:"msg_send,omitempty"`
 }
 
 func (*Message_MsgSend) isMessage_Sum() {}
@@ -130,7 +130,7 @@ func (m *Message) GetSum() isMessage_Sum {
 	return nil
 }
 
-func (m *Message) GetMsgSend() *bank.MsgSend {
+func (m *Message) GetMsgSend() *keys.MsgSend {
 	if x, ok := m.GetSum().(*Message_MsgSend); ok {
 		return x.MsgSend
 	}
@@ -516,10 +516,10 @@ func (this *Message) SetMsg(value github_com_irisnet_service_sdk_go_types.Msg) e
 		return nil
 	}
 	switch vt := value.(type) {
-	case *bank.MsgSend:
+	case *keys.MsgSend:
 		this.Sum = &Message_MsgSend{vt}
 		return nil
-	case bank.MsgSend:
+	case keys.MsgSend:
 		this.Sum = &Message_MsgSend{&vt}
 		return nil
 	}
@@ -1197,7 +1197,7 @@ func (m *Message) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &bank.MsgSend{}
+			v := &keys.MsgSend{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}

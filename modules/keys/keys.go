@@ -1,15 +1,32 @@
 package keys
 
 import (
+	"github.com/irisnet/service-sdk-go/codec"
+	"github.com/irisnet/service-sdk-go/codec/types"
 	sdk "github.com/irisnet/service-sdk-go/types"
 )
 
 type keysClient struct {
 	sdk.KeyManager
+	codec.Marshaler
 }
 
-func NewClient(keyManager sdk.KeyManager) KeyI {
-	return keysClient{keyManager}
+func NewClient(km sdk.KeyManager, cdc codec.Marshaler) KeyI {
+	return keysClient{
+		KeyManager: km,
+		Marshaler:  cdc}
+}
+
+func (b keysClient) RegisterCodec(cdc *codec.Codec) {
+	registerCodec(cdc)
+}
+
+func (b keysClient) RegisterInterfaceTypes(registry types.InterfaceRegistry) {
+	registry.RegisterImplementations(
+		(*sdk.Msg)(nil),
+		&MsgSend{},
+		&MsgMultiSend{},
+	)
 }
 
 func (k keysClient) Add(name, password string) (string, string, sdk.Error) {

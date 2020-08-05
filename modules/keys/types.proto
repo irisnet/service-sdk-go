@@ -4,7 +4,7 @@ package service.modules.bank;
 import "third_party/proto/gogoproto/gogo.proto";
 import "types/types.proto";
 
-option go_package = "github.com/irisnet/service-sdk-go/modules/bank";
+option go_package = "github.com/irisnet/service-sdk-go/modules/keys";
 
 // MsgSend - high level transaction of the coin module
 message MsgSend {

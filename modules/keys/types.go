@@ -1,19 +1,20 @@
-package bank
+package keys
 
 import (
 	"errors"
 	"fmt"
-	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/secp256k1"
-
 	"github.com/irisnet/service-sdk-go/codec"
 	"github.com/irisnet/service-sdk-go/codec/types"
+	"github.com/irisnet/service-sdk-go/crypto/sm2"
 	sdk "github.com/irisnet/service-sdk-go/types"
+	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/multisig"
+	"github.com/tendermint/tendermint/crypto/secp256k1"
 )
 
 const (
 	maxMsgLen  = 5
-	ModuleName = "bank"
+	ModuleName = "keys"
 )
 
 var (
@@ -181,27 +182,21 @@ func NewOutput(addr sdk.AccAddress, coins sdk.Coins) Output {
 }
 
 func registerCodec(cdc *codec.Codec) {
-	//cdc.RegisterConcrete(MsgSend{}, "cosmos-sdk/MsgSend", nil)
-	//cdc.RegisterConcrete(MsgMultiSend{}, "cosmos-sdk/MsgMultiSend", nil)
+	cdc.RegisterConcrete(MsgSend{}, "cosmos-sdk/MsgSend", nil)
+	cdc.RegisterConcrete(MsgMultiSend{}, "cosmos-sdk/MsgMultiSend", nil)
 
 	//cdc.RegisterInterface((*Account)(nil), nil)
-	cdc.RegisterConcrete(&BaseAccount{}, "cosmos-sdk/BaseAccount", nil)
+	//cdc.RegisterConcrete(&BaseAccount{}, "cosmos-sdk/BaseAccount", nil)
 	cdc.RegisterInterface((*crypto.PubKey)(nil), nil)
-	//cdc.RegisterConcrete(ed25519.PubKeyEd25519{},
-	//	ed25519.PubKeyAminoName, nil)
 	cdc.RegisterConcrete(secp256k1.PubKeySecp256k1{},
 		secp256k1.PubKeyAminoName, nil)
-	//cdc.RegisterConcrete(sm2.PubKeySm2{},
-	//	sm2.PubKeyAminoName, nil)
-	//cdc.RegisterConcrete(multisig.PubKeyMultisigThreshold{},
-	//	multisig.PubKeyMultisigThresholdAminoRoute, nil)
-	//
+	cdc.RegisterConcrete(sm2.PubKeySm2{},
+		sm2.PubKeyAminoName, nil)
+	cdc.RegisterConcrete(multisig.PubKeyMultisigThreshold{},
+		multisig.PubKeyMultisigThresholdAminoRoute, nil)
 	cdc.RegisterInterface((*crypto.PrivKey)(nil), nil)
-	//cdc.RegisterConcrete(ed25519.PrivKeyEd25519{},
-	//	ed25519.PrivKeyAminoName, nil)
 	cdc.RegisterConcrete(secp256k1.PrivKeySecp256k1{},
 		secp256k1.PrivKeyAminoName, nil)
-	//cdc.RegisterConcrete(sm2.PrivKeySm2{},
-	//	sm2.PrivKeyAminoName, nil)
-
+	cdc.RegisterConcrete(sm2.PrivKeySm2{},
+		sm2.PrivKeyAminoName, nil)
 }

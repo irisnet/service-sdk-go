@@ -1,13 +1,13 @@
-# CSChain Go SDK
+# Service Go SDK
 
-CSChain GO SDK makes a simple package of API provided by CSChain, which provides great convenience for users to quickly develop applications based on CSChain.
+Service GO SDK makes a simple package of API provided by IService, which provides great convenience for users to quickly develop applications based on IService.
 
 ## install
 
 ### Requirement
 
  - Go version above 1.14.0
- - Environment variables `export GOPRIVATE=gitlab.bianjie.ai`
+ - Environment variables `export GOPRIVATE=github.com/irisnet`
 
 ### Use Go Mod
 

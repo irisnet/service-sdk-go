@@ -4,6 +4,7 @@ import (
 	json2 "encoding/json"
 	"errors"
 	"fmt"
+	"github.com/irisnet/service-sdk-go/modules/keys"
 	"strings"
 
 	"github.com/irisnet/service-sdk-go/codec"
@@ -783,6 +784,7 @@ func (p Params) Convert() interface{} {
 }
 
 func registerCodec(cdc *codec.Codec) {
+
 	cdc.RegisterConcrete(MsgDefineService{}, "irismod/service/MsgDefineService", nil)
 	cdc.RegisterConcrete(MsgBindService{}, "irismod/service/MsgBindService", nil)
 	cdc.RegisterConcrete(MsgUpdateServiceBinding{}, "irismod/service/MsgUpdateServiceBinding", nil)
@@ -798,5 +800,8 @@ func registerCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgUpdateRequestContext{}, "irismod/service/MsgUpdateRequestContext", nil)
 	cdc.RegisterConcrete(MsgWithdrawEarnedFees{}, "irismod/service/MsgWithdrawEarnedFees", nil)
 
+	cdc.RegisterInterface((*keys.Account)(nil), nil)
+	cdc.RegisterConcrete(&keys.BaseAccount{}, "cosmos-sdk/BaseAccount", nil)
 	cdc.RegisterConcrete(sdk.Token{}, "irismod/token/Token", nil)
+
 }

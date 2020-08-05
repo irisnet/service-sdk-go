@@ -6,7 +6,6 @@ import (
 	"github.com/irisnet/service-sdk-go/codec"
 	cdctypes "github.com/irisnet/service-sdk-go/codec/types"
 	"github.com/irisnet/service-sdk-go/modules"
-	"github.com/irisnet/service-sdk-go/modules/bank"
 	"github.com/irisnet/service-sdk-go/modules/keys"
 	"github.com/irisnet/service-sdk-go/modules/service"
 	"github.com/irisnet/service-sdk-go/std"
@@ -21,7 +20,6 @@ type CSRBClient struct {
 	types.TxManager
 	types.TokenConvert
 
-	Bank    bank.BankI
 	Service service.ServiceI
 	Key     keys.KeyI
 }
@@ -35,9 +33,8 @@ func NewCSRBClient(cfg types.ClientConfig) CSRBClient {
 	//create a instance of baseClient
 	baseClient := modules.NewBaseClient(cfg, appCodec)
 
-	bankClient := bank.NewClient(baseClient, appCodec)
 	serviceClient := service.NewClient(baseClient, appCodec)
-	keysClient := keys.NewClient(baseClient)
+	keysClient := keys.NewClient(baseClient, appCodec)
 
 	client := &CSRBClient{
 		logger:       baseClient.Logger(),
@@ -45,13 +42,15 @@ func NewCSRBClient(cfg types.ClientConfig) CSRBClient {
 		TxManager:    baseClient,
 		TokenConvert: baseClient,
 
-		Bank:    bankClient,
+		//Bank:    bankClient,
 		Key:     keysClient,
 		Service: serviceClient,
 	}
 
-	client.RegisterModule(cdc, interfaceRegistry,
-		bankClient,
+	client.RegisterModule(
+		cdc,
+		interfaceRegistry,
+		keysClient,
 		serviceClient,
 	)
 	return *client

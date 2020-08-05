@@ -6,7 +6,7 @@ import (
 
 	"github.com/irisnet/service-sdk-go/codec"
 
-	"github.com/irisnet/service-sdk-go/modules/bank"
+	"github.com/irisnet/service-sdk-go/modules/keys"
 	sdk "github.com/irisnet/service-sdk-go/types"
 	"github.com/irisnet/service-sdk-go/utils/cache"
 	"github.com/irisnet/service-sdk-go/utils/log"
@@ -58,7 +58,7 @@ func (a accountQuery) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) 
 	if er != nil {
 		return sdk.BaseAccount{}, sdk.Wrap(er)
 	}
-	var account bank.BaseAccount
+	var account keys.BaseAccount
 	if err := a.cdc.UnmarshalJSON(bz, &account); err != nil {
 		return sdk.BaseAccount{}, sdk.Wrap(err)
 	}
