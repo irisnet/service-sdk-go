@@ -210,7 +210,7 @@ func (r rpcClient) parseValidatorSetUpdates(data sdk.EventData) sdk.EventDataVal
 }
 
 func getSubscriber() string {
-	subscriber := "csrb-sdk-go"
+	subscriber := "service-sdk-go"
 	id, err := uuid.NewV1()
 	if err == nil {
 		subscriber = fmt.Sprintf("%s-%s", subscriber, id.String())
