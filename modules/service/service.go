@@ -416,7 +416,7 @@ func (s serviceClient) SubscribeServiceRequest(serviceName string,
 
 	builder := sdk.NewEventQueryBuilder().
 		AddCondition(sdk.NewCond(eventTypeNewBatchRequestProvider, attributeKeyProvider).
-			EQ(sdk.EventValue(provider.String()))). //TODO
+			EQ(sdk.EventValue(provider.String()))).
 		AddCondition(sdk.NewCond(eventTypeNewBatchRequest, attributeKeyServiceName).
 			EQ(sdk.EventValue(serviceName)),
 		)

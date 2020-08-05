@@ -12,7 +12,7 @@ import (
 
 func (s IntegrationTestSuite) TestService() {
 	schemas := `{"input":{"type":"object"},"output":{"type":"object"},"error":{"type":"object"}}`
-	pricing := `{"price":"1point"}`
+	pricing := `{"price":"1stake"}`
 
 	baseTx := sdk.BaseTx{
 		From:     s.Account().Name,
@@ -43,7 +43,7 @@ func (s IntegrationTestSuite) TestService() {
 	require.Equal(s.T(), definition.Schemas, defi.Schemas)
 	require.Equal(s.T(), s.Account().Address, defi.Author)
 
-	deposit, e := sdk.ParseDecCoins("20000point")
+	deposit, e := sdk.ParseDecCoins("20000stake")
 	require.NoError(s.T(), e)
 	binding := service.BindServiceRequest{
 		ServiceName: definition.ServiceName,
@@ -74,7 +74,7 @@ func (s IntegrationTestSuite) TestService() {
 	sub1, err = s.Service.SubscribeServiceRequest(definition.ServiceName, callback, baseTx)
 	require.NoError(s.T(), err)
 
-	serviceFeeCap, e := sdk.ParseDecCoins("200point")
+	serviceFeeCap, e := sdk.ParseDecCoins("200stake")
 	require.NoError(s.T(), e)
 
 	invocation := service.InvokeServiceRequest{
@@ -143,36 +143,7 @@ loop:
 	require.NoError(s.T(), err)
 	require.NotEmpty(s.T(), fee)
 
-	//acc := s.GetRandAccount()
-
-	//TODO
-	//rs, err := s.ServiceI.WithdrawEarnedFees(acc.Address.String(), baseTx)
-	//require.NoError(s.T(), err)
-	//
-	//withdrawFee, er := rs.Events.GetValue("transfer", "amount")
-	//require.NoError(s.T(), er)
-	//require.Equal(s.T(), fee.String(), withdrawFee)
-}
-
-func (s IntegrationTestSuite) TestDefineService() {
-	schemas := `{"input":{"type":"object"},"output":{"type":"object"},"error":{"type":"object"}}`
-
-	baseTx := sdk.BaseTx{
-		From: s.rootAccount.Name,
-		Gas:  200000,
-		//Memo:     "test",
-		Mode:     sdk.Commit,
-		Password: s.rootAccount.Password,
-	}
-
-	definition := service.DefineServiceRequest{
-		ServiceName:       "assettransfer2",
-		Description:       "asset transfer",
-		Tags:              nil,
-		AuthorDescription: "tester",
-		Schemas:           schemas,
-	}
-	result, err := s.Service.DefineService(definition, baseTx)
+	rs, err := s.Service.WithdrawEarnedFees(s.rootAccount.Address.String(), baseTx)
 	require.NoError(s.T(), err)
-	require.NotEmpty(s.T(), result.Hash)
+	require.NotEmpty(s.T(), rs)
 }
