@@ -32,7 +32,7 @@ cfg, err := types.NewClientConfig(nodeURI, chainID, options...)
 if err != nil {
     panic(err)
 }
-client := sdk.NewCSRBClient(cfg)
+client := sdk.NewIServiceClient(cfg)
 ```
 
 The `ClientConfig` component mainly contains the parameters used in the SDK, the specific meaning is shown in the table below
@@ -40,7 +40,7 @@ The `ClientConfig` component mainly contains the parameters used in the SDK, the
 | Iterm     | Type          | Description                                                                             |
 | --------- | ------------- | --------------------------------------------------------------------------------------- |
 | NodeURI   | string        | The RPC address of the irita node connected to the SDK, for example: localhost: 26657 |
-| ChainID   | string        | ChainID of csrb, for example: `csrb`                                              |
+| ChainID   | string        | ChainID of test, for example: `test`                                              |
 | Gas       | uint64        | The maximum gas to be paid for the transaction, for example: `20000`                    |
 | Fee       | DecCoins      | Transaction fees to be paid for transactions                                            |
 | KeyDAO    | KeyDAO        | Private key management interface, If the user does not provide it, the default `LevelDB` will be used                                                        |

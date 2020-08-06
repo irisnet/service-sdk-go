@@ -1,2 +1,2 @@
 docker stop sdk-test
-docker rmi csrb-sdk-go
+docker rmi service-sdk-go

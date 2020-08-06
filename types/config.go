@@ -15,7 +15,7 @@ const (
 	defaultMaxTxsBytes   = 1073741824
 	defaultAlgo          = "secp256k1"
 	defaultMode          = Sync
-	defaultPath          = "$HOME/csrb-sdk-go/leveldb"
+	defaultPath          = "$HOME/service-sdk-go/leveldb"
 	defaultGasAdjustment = 1.0
 )
 

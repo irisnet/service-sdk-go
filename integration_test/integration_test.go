@@ -33,7 +33,7 @@ var (
 
 type IntegrationTestSuite struct {
 	suite.Suite
-	sdk.CSRBClient
+	sdk.IServiceClient
 	r            *rand.Rand
 	rootAccount  MockAccount
 	randAccounts []MockAccount
@@ -64,7 +64,7 @@ func (s *IntegrationTestSuite) SetupSuite() {
 		panic(err)
 	}
 
-	s.CSRBClient = sdk.NewCSRBClient(cfg)
+	s.IServiceClient = sdk.NewIServiceClient(cfg)
 	s.r = rand.New(rand.NewSource(time.Now().UnixNano()))
 	s.rootAccount = MockAccount{
 		Name:     "v1",

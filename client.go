@@ -13,7 +13,7 @@ import (
 	"github.com/irisnet/service-sdk-go/utils/log"
 )
 
-type CSRBClient struct {
+type IServiceClient struct {
 	logger *log.Logger
 
 	types.WSClient
@@ -24,7 +24,7 @@ type CSRBClient struct {
 	Key     keys.KeyI
 }
 
-func NewCSRBClient(cfg types.ClientConfig) CSRBClient {
+func NewIServiceClient(cfg types.ClientConfig) IServiceClient {
 	//create cdc for encoding and decoding
 	cdc := types.NewCodec()
 	interfaceRegistry := cdctypes.NewInterfaceRegistry()
@@ -36,7 +36,7 @@ func NewCSRBClient(cfg types.ClientConfig) CSRBClient {
 	serviceClient := service.NewClient(baseClient, appCodec)
 	keysClient := keys.NewClient(baseClient, appCodec)
 
-	client := &CSRBClient{
+	client := &IServiceClient{
 		logger:       baseClient.Logger(),
 		WSClient:     baseClient,
 		TxManager:    baseClient,
@@ -56,11 +56,11 @@ func NewCSRBClient(cfg types.ClientConfig) CSRBClient {
 	return *client
 }
 
-func (s *CSRBClient) SetOutput(w io.Writer) {
+func (s *IServiceClient) SetOutput(w io.Writer) {
 	s.logger.SetOutput(w)
 }
 
-func (s *CSRBClient) RegisterModule(cdc *codec.Codec, interfaceRegistry cdctypes.InterfaceRegistry, ms ...types.Module) {
+func (s *IServiceClient) RegisterModule(cdc *codec.Codec, interfaceRegistry cdctypes.InterfaceRegistry, ms ...types.Module) {
 	for _, m := range ms {
 		m.RegisterCodec(cdc)
 		m.RegisterInterfaceTypes(interfaceRegistry)

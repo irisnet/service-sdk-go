@@ -1,1 +1,1 @@
-cp -r ./scripts/node/   ~/.csrb
+cp -r ./scripts/node/   ~/.service
