@@ -147,28 +147,3 @@ loop:
 	require.NoError(s.T(), err)
 	require.NotEmpty(s.T(), rs)
 }
-
-// TODO DELETE tempTest
-func (s IntegrationTestSuite) TestTemp() {
-	schemas := `{"input":{"type":"object"},"output":{"type":"object"},"error":{"type":"object"}}`
-
-	baseTx := sdk.BaseTx{
-		From:     s.Account().Name,
-		Gas:      200000,
-		Memo:     "test",
-		Mode:     sdk.Commit,
-		Password: s.Account().Password,
-	}
-
-	definition := service.DefineServiceRequest{
-		ServiceName:       "testAugustFifth02",
-		Description:       "this is a test service",
-		Tags:              nil,
-		AuthorDescription: "service provider",
-		Schemas:           schemas,
-	}
-
-	result, err := s.Service.DefineService(definition, baseTx)
-	require.NoError(s.T(), err)
-	require.NotEmpty(s.T(), result.Hash)
-}
