@@ -328,16 +328,16 @@ func (base *baseClient) ValidateTxSize(txSize int, msgs []sdk.Msg) sdk.Error {
 		}
 	}
 	if isServiceTx {
-		//var param service.Params
+		var param service.Params
 
-		//err := base.QueryParams(service.ModuleName, &param)
-		//if err != nil {
-		//	panic(err)
-		//}
+		err := base.QueryParams(service.ModuleName, &param)
+		if err != nil {
+			panic(err)
+		}
 
-		//if uint64(txSize) > param.TxSizeLimit {
-		//	return sdk.Wrapf("tx size too large, expected: <= %d, got %d", param.TxSizeLimit, txSize)
-		//}
+		if uint64(txSize) > param.TxSizeLimit {
+			return sdk.Wrapf("tx size too large, expected: <= %d, got %d", param.TxSizeLimit, txSize)
+		}
 		return nil
 
 	} else {

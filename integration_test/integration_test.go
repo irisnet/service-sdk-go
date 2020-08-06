@@ -81,9 +81,7 @@ func (s *IntegrationTestSuite) TearDownSuite() {
 func (s *IntegrationTestSuite) initAccount() {
 	name := s.rootAccount.Name
 	pwd := s.rootAccount.Password
-	mnemonic := "abstract toe afraid ceiling inform lunch abuse capital hunt rebel once already slot hybrid maximum display snack laptop advance pizza guard fringe box renew"
-	address, err := s.Key.Recover(name, pwd, mnemonic)
-	//address, err := s.Key.Import(name, pwd, string(getPrivKeyArmor()))
+	address, err := s.Key.Import(name, pwd, string(getPrivKeyArmor()))
 	if err != nil {
 		panic("generate test account failed")
 	}
