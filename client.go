@@ -16,9 +16,12 @@ import (
 	txtypes "github.com/irisnet/service-sdk-go/types/tx"
 )
 
+// ServiceClient exports service.ServiceClient
+type ServiceClient = service.ServiceClient
+
 // NewServiceClient contructs a service client
-func NewServiceClient(cfg types.ClientConfig) service.ServiceClient {
-	return NewClient(cfg).Service.(service.ServiceClient)
+func NewServiceClient(cfg types.ClientConfig) ServiceClient {
+	return NewClient(cfg).Service.(ServiceClient)
 }
 
 type Client struct {
