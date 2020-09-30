@@ -1,0 +1,30 @@
+syntax = "proto3";
+package cosmos.auth.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/any.proto";
+import "google/api/annotations.proto";
+import "cosmos/auth/v1beta1/auth.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/irisnet/service-sdk-go/base_modules/auth";
+
+// Query defines the gRPC querier service.
+service Query {
+  // Account returns account details based on address.
+  rpc Account(QueryAccountRequest) returns (QueryAccountResponse) {
+    option (google.api.http).get = "/cosmos/auth/v1beta1/accounts/{address}";
+  }
+}
+
+// QueryAccountRequest is the request type for the Query/Account RPC method.
+message QueryAccountRequest {
+  // address defines the address to query for.
+  bytes address = 1 [(gogoproto.casttype) = "github.com/irisnet/service-sdk-go/types.AccAddress"];
+}
+
+// QueryAccountResponse is the response type for the Query/Account RPC method.
+message QueryAccountResponse {
+  // account defines the account of the corresponding address.
+  google.protobuf.Any account = 1 [(cosmos_proto.accepts_interface) = "AccountI"];
+}
