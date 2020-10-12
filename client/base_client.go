@@ -1,7 +1,7 @@
 // Package modules is to warpped the API provided by each module of IRITA
 //
 //
-package base_modules
+package client
 
 import (
 	"errors"

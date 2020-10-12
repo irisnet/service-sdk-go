@@ -1,4 +1,4 @@
-package base_modules
+package client
 
 import (
 	"google.golang.org/grpc"

@@ -5,9 +5,9 @@ import (
 
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/irisnet/service-sdk-go/base_modules"
 	"github.com/irisnet/service-sdk-go/base_modules/bank"
 	"github.com/irisnet/service-sdk-go/base_modules/token"
+	baseclient "github.com/irisnet/service-sdk-go/client"
 	"github.com/irisnet/service-sdk-go/codec"
 	cdctypes "github.com/irisnet/service-sdk-go/codec/types"
 	cryptocodec "github.com/irisnet/service-sdk-go/crypto/codec"
@@ -39,7 +39,7 @@ func NewClient(cfg types.ClientConfig) Client {
 	encodingConfig := makeEncodingConfig()
 
 	// create an instance of baseClient
-	baseClient := base_modules.NewBaseClient(cfg, encodingConfig, nil)
+	baseClient := baseclient.NewBaseClient(cfg, encodingConfig, nil)
 
 	bankClient := bank.NewClient(baseClient, encodingConfig.Marshaler)
 	tokenClient := token.NewClient(baseClient, encodingConfig.Marshaler)
