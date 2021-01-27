@@ -1,11 +1,10 @@
 package store
 
 import (
-	"github.com/tendermint/tendermint/crypto"
-
 	"github.com/irisnet/service-sdk-go/codec"
 	cryptoAmino "github.com/irisnet/service-sdk-go/crypto/codec"
 	"github.com/irisnet/service-sdk-go/crypto/hd"
+	cryptotypes "github.com/irisnet/service-sdk-go/crypto/types"
 )
 
 var cdc *codec.LegacyAmino
@@ -25,7 +24,7 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 }
 
 // PubKeyFromBytes unmarshals public key bytes and returns a PubKey
-func PubKeyFromBytes(pubKeyBytes []byte) (pubKey crypto.PubKey, err error) {
+func PubKeyFromBytes(pubKeyBytes []byte) (pubKey cryptotypes.PubKey, err error) {
 	err = cdc.UnmarshalBinaryBare(pubKeyBytes, &pubKey)
 	return
 }

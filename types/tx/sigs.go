@@ -4,7 +4,9 @@ import (
 	"fmt"
 
 	"github.com/irisnet/service-sdk-go/codec"
+	codectypes "github.com/irisnet/service-sdk-go/codec/types"
 	"github.com/irisnet/service-sdk-go/crypto/types"
+	cryptotypes "github.com/irisnet/service-sdk-go/crypto/types"
 	"github.com/irisnet/service-sdk-go/types/tx/signing"
 )
 
@@ -107,15 +109,14 @@ func (g config) MarshalSignatureJSON(sigs []signing.SignatureV2) ([]byte, error)
 	descs := make([]*signing.SignatureDescriptor, len(sigs))
 
 	for i, sig := range sigs {
-		publicKey, err := g.pubkeyCodec.Encode(sig.PubKey)
+		descData := signing.SignatureDataToProto(sig.Data)
+		any, err := codectypes.NewAnyWithValue(sig.PubKey)
 		if err != nil {
 			return nil, err
 		}
 
-		descData := signing.SignatureDataToProto(sig.Data)
-
 		descs[i] = &signing.SignatureDescriptor{
-			PublicKey: publicKey,
+			PublicKey: any,
 			Data:      descData,
 		}
 	}
@@ -133,11 +134,7 @@ func (g config) UnmarshalSignatureJSON(bz []byte) ([]signing.SignatureV2, error)
 
 	sigs := make([]signing.SignatureV2, len(sigDescs.Signatures))
 	for i, desc := range sigDescs.Signatures {
-		pubKey, err := g.pubkeyCodec.Decode(desc.PublicKey)
-		if err != nil {
-			return nil, err
-		}
-
+		pubKey, _ := desc.PublicKey.GetCachedValue().(cryptotypes.PubKey)
 		data := signing.SignatureDataFromProto(desc.Data)
 
 		sigs[i] = signing.SignatureV2{

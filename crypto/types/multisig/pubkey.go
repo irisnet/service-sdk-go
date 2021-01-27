@@ -1,22 +1,21 @@
 package multisig
 
 import (
-	"github.com/tendermint/tendermint/crypto"
-
+	cryptotypes "github.com/irisnet/service-sdk-go/crypto/types"
 	"github.com/irisnet/service-sdk-go/types/tx/signing"
 )
 
 // PubKey defines a type which supports multi-signature verification via MultiSignatureData
 // which supports multiple SignMode's.
 type PubKey interface {
-	crypto.PubKey
+	cryptotypes.PubKey
 
 	// VerifyMultisignature verifies the provide multi-signature represented by MultiSignatureData
 	// using getSignBytes to retrieve the sign bytes to verify against for the provided mode.
 	VerifyMultisignature(getSignBytes GetSignBytesFunc, sig *signing.MultiSignatureData) error
 
-	// GetPubKeys returns the crypto.PubKey's nested within the multi-sig PubKey
-	GetPubKeys() []crypto.PubKey
+	// GetPubKeys returns the cryptotypes.PubKey's nested within the multi-sig PubKey
+	GetPubKeys() []cryptotypes.PubKey
 
 	// GetThreshold returns the threshold number of signatures that must be obtained to verify a signature.
 	GetThreshold() uint

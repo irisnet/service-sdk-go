@@ -4,14 +4,14 @@ import (
 	"io"
 	"testing"
 
-	"github.com/tendermint/tendermint/crypto"
-
 	"github.com/irisnet/service-sdk-go/crypto/keys/internal/benchmarking"
+	"github.com/irisnet/service-sdk-go/crypto/types"
 )
 
 func BenchmarkKeyGeneration(b *testing.B) {
-	benchmarkKeygenWrapper := func(reader io.Reader) crypto.PrivKey {
-		return genPrivKey(reader)
+	benchmarkKeygenWrapper := func(reader io.Reader) types.PrivKey {
+		priv := genPrivKey(reader)
+		return &PrivKey{Key: priv}
 	}
 	benchmarking.BenchmarkKeyGeneration(b, benchmarkKeygenWrapper)
 }

@@ -11,6 +11,7 @@ type TxManager interface {
 	TmQuery
 	BuildAndSend(msg []Msg, baseTx BaseTx) (ResultTx, Error)
 	SendBatch(msgs Msgs, baseTx BaseTx) ([]ResultTx, Error)
+	BuildAndSendWithAccount(addr string, accountNumber, sequence uint64, msg []Msg, baseTx BaseTx) (ResultTx, Error)
 }
 
 type Queries interface {
@@ -63,7 +64,6 @@ type BaseClient interface {
 	TxManager
 	TokenManager
 	KeyManager
-	TmClient
 	Queries
 	TokenConvert
 	TmClient

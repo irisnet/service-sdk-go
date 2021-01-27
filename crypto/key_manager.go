@@ -4,14 +4,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pkg/errors"
-
-	"github.com/tendermint/tendermint/crypto"
-
 	"github.com/cosmos/go-bip39"
+	"github.com/pkg/errors"
 
 	cryptoAmino "github.com/irisnet/service-sdk-go/crypto/codec"
 	"github.com/irisnet/service-sdk-go/crypto/hd"
+	cryptotypes "github.com/irisnet/service-sdk-go/crypto/types"
 )
 
 const (
@@ -19,17 +17,17 @@ const (
 )
 
 type KeyManager interface {
-	Generate() (string, crypto.PrivKey)
+	Generate() (string, cryptotypes.PrivKey)
 	Sign(data []byte) ([]byte, error)
 
 	ExportPrivKey(password string) (armor string, err error)
-	ImportPrivKey(armor, passphrase string) (crypto.PrivKey, string, error)
+	ImportPrivKey(armor, passphrase string) (cryptotypes.PrivKey, string, error)
 
-	ExportPubKey() crypto.PubKey
+	ExportPubKey() cryptotypes.PubKey
 }
 
 type keyManager struct {
-	privKey        crypto.PrivKey
+	privKey        cryptotypes.PrivKey
 	mnemonic, algo string
 }
 
@@ -70,7 +68,7 @@ func NewPrivateKeyManager(priv []byte, algo string) (KeyManager, error) {
 	return &k, err
 }
 
-func (m *keyManager) Generate() (string, crypto.PrivKey) {
+func (m *keyManager) Generate() (string, cryptotypes.PrivKey) {
 	return m.mnemonic, m.privKey
 }
 
@@ -105,8 +103,8 @@ func (m *keyManager) ExportPrivKey(password string) (armor string, err error) {
 	return EncryptArmorPrivKey(m.privKey, password, m.algo), nil
 }
 
-func (m *keyManager) ImportPrivKey(armor, passphrase string) (crypto.PrivKey, string, error) {
-	privKey, algo, err := DecryptArmorPrivKey(armor, passphrase)
+func (m *keyManager) ImportPrivKey(armor, passphrase string) (cryptotypes.PrivKey, string, error) {
+	privKey, algo, err := UnarmorDecryptPrivKey(armor, passphrase)
 	if err != nil {
 		return nil, "", errors.Wrap(err, "failed to decrypt private key")
 	}
@@ -116,6 +114,6 @@ func (m *keyManager) ImportPrivKey(armor, passphrase string) (crypto.PrivKey, st
 	return privKey, algo, nil
 }
 
-func (m *keyManager) ExportPubKey() crypto.PubKey {
+func (m *keyManager) ExportPubKey() cryptotypes.PubKey {
 	return m.privKey.PubKey()
 }
