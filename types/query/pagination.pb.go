@@ -27,7 +27,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 //
 //  message SomeRequest {
 //          Foo some_parameter = 1;
-//          PageRequest pagination = 2;
+//          PageRequest page = 2;
 //  }
 type PageRequest struct {
 	// key is a value returned in PageResponse.next_key to begin
@@ -109,7 +109,7 @@ func (m *PageRequest) GetCountTotal() bool {
 }
 
 // PageResponse is to be embedded in gRPC response messages where the corresponding
-// request message has used PageRequest.
+// request message has used PageRequest
 //
 //  message SomeResponse {
 //          repeated Bar results = 1;

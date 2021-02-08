@@ -1,12 +1,15 @@
-// Package modules is to warpped the API provided by each module of IRITA
+// Package modules is to warpped the API provided by each module of IRIS-Hub
 //
 //
 package client
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
+
+	clienttx "github.com/irisnet/service-sdk-go/client/tx"
 
 	"github.com/gogo/protobuf/proto"
 
@@ -104,6 +107,19 @@ func (base *baseClient) Marshaler() codec.Marshaler {
 
 func (base *baseClient) BuildAndSend(msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
 	txByte, ctx, err := base.buildTx(msg, baseTx)
+	if err != nil {
+		return sdk.ResultTx{}, err
+	}
+
+	if err = base.ValidateTxSize(len(txByte), msg); err != nil {
+		return sdk.ResultTx{}, err
+	}
+
+	return base.broadcastTx(txByte, ctx.Mode(), baseTx.Simulate)
+}
+
+func (base *baseClient) BuildAndSendWithAccount(addr string, accountNumber, sequence uint64, msg []sdk.Msg, baseTx sdk.BaseTx) (sdk.ResultTx, sdk.Error) {
+	txByte, ctx, err := base.buildTxWithAccount(addr, accountNumber, sequence, msg, baseTx)
 	if err != nil {
 		return sdk.ResultTx{}, err
 	}
@@ -207,7 +223,7 @@ func (base baseClient) Query(path string, data interface{}) ([]byte, error) {
 		// Height: cliCtx.Height,
 		Prove: false,
 	}
-	result, err := base.ABCIQueryWithOptions(path, bz, opts)
+	result, err := base.ABCIQueryWithOptions(context.Background(), path, bz, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -227,7 +243,7 @@ func (base baseClient) QueryStore(key sdk.HexBytes, storeName string, height int
 		Height: height,
 	}
 
-	result, err := base.ABCIQueryWithOptions(path, key, opts)
+	result, err := base.ABCIQueryWithOptions(context.Background(), path, key, opts)
 	if err != nil {
 		return res, err
 	}
@@ -239,12 +255,12 @@ func (base baseClient) QueryStore(key sdk.HexBytes, storeName string, height int
 	return resp, nil
 }
 
-func (base *baseClient) prepare(baseTx sdk.BaseTx) (*sdk.Factory, error) {
-	factory := sdk.NewFactory().
+func (base *baseClient) prepare(baseTx sdk.BaseTx) (*clienttx.Factory, error) {
+	factory := clienttx.NewFactory().
 		WithChainID(base.cfg.ChainID).
 		WithKeyManager(base.KeyManager).
 		WithMode(base.cfg.Mode).
-		WithSimulate(baseTx.Simulate).
+		WithSimulateAndExecute(baseTx.Simulate).
 		WithGas(base.cfg.Gas).
 		WithSignModeHandler(tx.MakeSignModeHandler(tx.DefaultSignModes)).
 		WithTxConfig(base.encodingConfig.TxConfig)
@@ -261,6 +277,50 @@ func (base *baseClient) prepare(baseTx sdk.BaseTx) (*sdk.Factory, error) {
 	}
 	factory.WithAccountNumber(account.AccountNumber).
 		WithSequence(account.Sequence).
+		WithPassword(baseTx.Password)
+
+	if !baseTx.Fee.Empty() && baseTx.Fee.IsValid() {
+		fees, err := base.ToMinCoin(baseTx.Fee...)
+		if err != nil {
+			return nil, err
+		}
+		factory.WithFee(fees)
+	} else {
+		fees, err := base.ToMinCoin(base.cfg.Fee...)
+		if err != nil {
+			panic(err)
+		}
+		factory.WithFee(fees)
+	}
+
+	if len(baseTx.Mode) > 0 {
+		factory.WithMode(baseTx.Mode)
+	}
+
+	if baseTx.Gas > 0 {
+		factory.WithGas(baseTx.Gas)
+	}
+
+	if len(baseTx.Memo) > 0 {
+		factory.WithMemo(baseTx.Memo)
+	}
+	return factory, nil
+}
+
+// TODO
+func (base *baseClient) prepareTemp(addr string, accountNumber, sequence uint64, baseTx sdk.BaseTx) (*clienttx.Factory, error) {
+	factory := clienttx.NewFactory().
+		WithChainID(base.cfg.ChainID).
+		WithKeyManager(base.KeyManager).
+		WithMode(base.cfg.Mode).
+		WithSimulateAndExecute(baseTx.Simulate).
+		WithGas(base.cfg.Gas).
+		WithSignModeHandler(tx.MakeSignModeHandler(tx.DefaultSignModes)).
+		WithTxConfig(base.encodingConfig.TxConfig)
+
+	factory.WithAddress(addr).
+		WithAccountNumber(accountNumber).
+		WithSequence(sequence).
 		WithPassword(baseTx.Password)
 
 	if !baseTx.Fee.Empty() && baseTx.Fee.IsValid() {

@@ -33,7 +33,7 @@ func (a accountQuery) QueryAndRefreshAccount(address string) (sdk.BaseAccount, s
 
 	acc := account.(accountInfo)
 	baseAcc := sdk.BaseAccount{
-		Address:       sdk.MustAccAddressFromBech32(address),
+		Address:       address,
 		AccountNumber: acc.N,
 		Sequence:      acc.S + 1,
 	}
@@ -50,14 +50,10 @@ func (a accountQuery) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) 
 		return sdk.BaseAccount{}, sdk.Wrap(err)
 	}
 
-	addr, err := sdk.AccAddressFromBech32(address)
-	if err != nil {
-		return sdk.BaseAccount{}, sdk.Wrap(err)
+	request := &auth.QueryAccountRequest{
+		Address: address,
 	}
 
-	request := &auth.QueryAccountRequest{
-		Address: addr,
-	}
 	response, err := auth.NewQueryClient(conn).Account(context.Background(), request)
 	if err != nil {
 		return sdk.BaseAccount{}, sdk.Wrap(err)
@@ -68,10 +64,10 @@ func (a accountQuery) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) 
 		return sdk.BaseAccount{}, sdk.Wrap(err)
 	}
 
-	account := baseAccount.(*auth.BaseAccount).Convert().(sdk.BaseAccount)
+	account := baseAccount.(*auth.BaseAccount).ConvertAccount(a.cdc).(sdk.BaseAccount)
 
 	breq := &bank.QueryAllBalancesRequest{
-		Address:    addr,
+		Address:    address,
 		Pagination: nil,
 	}
 	balances, err := bank.NewQueryClient(conn).AllBalances(context.Background(), breq)
@@ -80,7 +76,6 @@ func (a accountQuery) QueryAccount(address string) (sdk.BaseAccount, sdk.Error) 
 	}
 
 	account.Coins = balances.Balances
-
 	return account, nil
 }
 
@@ -125,13 +120,13 @@ func (a accountQuery) refresh(address string) (sdk.BaseAccount, sdk.Error) {
 }
 
 func (a accountQuery) saveAccount(account sdk.BaseAccount) {
-	address := account.Address.String()
+	address := account.Address
 	info := accountInfo{
 		N: account.AccountNumber,
 		S: account.Sequence,
 	}
 	if err := a.SetWithExpire(a.prefixKey(address), info, a.expiration); err != nil {
-		a.Debug("cache user failed", "address", account.Address.String())
+		a.Debug("cache user failed", "address", account.Address)
 		return
 	}
 	a.Debug("cache account", "address", address, "expiration", a.expiration.String())

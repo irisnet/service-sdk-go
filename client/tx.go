@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"encoding/hex"
 	"errors"
 	"strings"
@@ -10,6 +11,7 @@ import (
 
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 
+	clienttx "github.com/irisnet/service-sdk-go/client/tx"
 	sdk "github.com/irisnet/service-sdk-go/types"
 )
 
@@ -20,7 +22,7 @@ func (base baseClient) QueryTx(hash string) (sdk.ResultQueryTx, error) {
 		return sdk.ResultQueryTx{}, err
 	}
 
-	res, err := base.Tx(tx, true)
+	res, err := base.Tx(context.Background(), tx, true)
 	if err != nil {
 		return sdk.ResultQueryTx{}, err
 	}
@@ -33,13 +35,12 @@ func (base baseClient) QueryTx(hash string) (sdk.ResultQueryTx, error) {
 }
 
 func (base baseClient) QueryTxs(builder *sdk.EventQueryBuilder, page, size int) (sdk.ResultSearchTxs, error) {
-
 	query := builder.Build()
 	if len(query) == 0 {
 		return sdk.ResultSearchTxs{}, errors.New("must declare at least one tag to search")
 	}
 
-	res, err := base.TxSearch(query, true, &page, &size, "asc")
+	res, err := base.TxSearch(context.Background(), query, true, &page, &size, "asc")
 	if err != nil {
 		return sdk.ResultSearchTxs{}, err
 	}
@@ -65,12 +66,12 @@ func (base baseClient) QueryTxs(builder *sdk.EventQueryBuilder, page, size int) 
 }
 
 func (base baseClient) QueryBlock(height int64) (sdk.BlockDetail, error) {
-	block, err := base.Block(&height)
+	block, err := base.Block(context.Background(), &height)
 	if err != nil {
 		return sdk.BlockDetail{}, err
 	}
 
-	blockResult, err := base.BlockResults(&height)
+	blockResult, err := base.BlockResults(context.Background(), &height)
 	if err != nil {
 		return sdk.BlockDetail{}, err
 	}
@@ -83,7 +84,7 @@ func (base baseClient) QueryBlock(height int64) (sdk.BlockDetail, error) {
 }
 
 func (base baseClient) EstimateTxGas(txBytes []byte) (uint64, error) {
-	res, err := base.ABCIQuery("/app/simulate", txBytes)
+	res, err := base.ABCIQuery(context.Background(), "/app/simulate", txBytes)
 	if err != nil {
 		return 0, err
 	}
@@ -97,8 +98,23 @@ func (base baseClient) EstimateTxGas(txBytes []byte) (uint64, error) {
 	return adjusted, nil
 }
 
-func (base *baseClient) buildTx(msgs []sdk.Msg, baseTx sdk.BaseTx) ([]byte, *sdk.Factory, sdk.Error) {
+func (base *baseClient) buildTx(msgs []sdk.Msg, baseTx sdk.BaseTx) ([]byte, *clienttx.Factory, sdk.Error) {
 	builder, err := base.prepare(baseTx)
+	if err != nil {
+		return nil, builder, sdk.Wrap(err)
+	}
+
+	txByte, err := builder.BuildAndSign(baseTx.From, msgs)
+	if err != nil {
+		return nil, builder, sdk.Wrap(err)
+	}
+
+	base.Logger().Debug("sign transaction success")
+	return txByte, builder, nil
+}
+
+func (base *baseClient) buildTxWithAccount(addr string, accountNumber, sequence uint64, msgs []sdk.Msg, baseTx sdk.BaseTx) ([]byte, *clienttx.Factory, sdk.Error) {
+	builder, err := base.prepareTemp(addr, accountNumber, sequence, baseTx)
 	if err != nil {
 		return nil, builder, sdk.Wrap(err)
 	}
@@ -138,7 +154,7 @@ func (base baseClient) broadcastTx(txBytes []byte, mode sdk.BroadcastMode, simul
 // broadcastTxCommit broadcasts transaction bytes to a Tendermint node
 // and waits for a commit.
 func (base baseClient) broadcastTxCommit(tx []byte) (sdk.ResultTx, sdk.Error) {
-	res, err := base.BroadcastTxCommit(tx)
+	res, err := base.BroadcastTxCommit(context.Background(), tx)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
@@ -163,14 +179,13 @@ func (base baseClient) broadcastTxCommit(tx []byte) (sdk.ResultTx, sdk.Error) {
 // BroadcastTxSync broadcasts transaction bytes to a Tendermint node
 // synchronously.
 func (base baseClient) broadcastTxSync(tx []byte) (sdk.ResultTx, sdk.Error) {
-	res, err := base.BroadcastTxSync(tx)
+	res, err := base.BroadcastTxSync(context.Background(), tx)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
 
 	if res.Code != 0 {
-		return sdk.ResultTx{}, sdk.GetError(sdk.RootCodespace,
-			res.Code, res.Log)
+		return sdk.ResultTx{}, sdk.GetError(sdk.RootCodespace, res.Code, res.Log)
 	}
 
 	return sdk.ResultTx{Hash: res.Hash.String()}, nil
@@ -179,7 +194,7 @@ func (base baseClient) broadcastTxSync(tx []byte) (sdk.ResultTx, sdk.Error) {
 // BroadcastTxAsync broadcasts transaction bytes to a Tendermint node
 // asynchronously.
 func (base baseClient) broadcastTxAsync(tx []byte) (sdk.ResultTx, sdk.Error) {
-	res, err := base.BroadcastTxAsync(tx)
+	res, err := base.BroadcastTxAsync(context.Background(), tx)
 	if err != nil {
 		return sdk.ResultTx{}, sdk.Wrap(err)
 	}
@@ -191,7 +206,7 @@ func (base baseClient) getResultBlocks(resTxs []*ctypes.ResultTx) (map[int64]*ct
 	resBlocks := make(map[int64]*ctypes.ResultBlock)
 	for _, resTx := range resTxs {
 		if _, ok := resBlocks[resTx.Height]; !ok {
-			resBlock, err := base.Block(&resTx.Height)
+			resBlock, err := base.Block(context.Background(), &resTx.Height)
 			if err != nil {
 				return nil, err
 			}

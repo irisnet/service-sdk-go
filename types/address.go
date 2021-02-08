@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 
+	cryptotypes "github.com/irisnet/service-sdk-go/crypto/types"
 	"github.com/irisnet/service-sdk-go/utils/bech32"
 )
 
@@ -28,6 +29,15 @@ func AccAddressFromBech32(address string) (AccAddress, Error) {
 	}
 
 	return AccAddress(bz), nil
+}
+
+func ValidateAccAddress(address string) Error {
+	bech32PrefixAccAddr := GetAddrPrefixCfg().GetBech32AccountAddrPrefix()
+	_, err := bech32.GetFromBech32(address, bech32PrefixAccAddr)
+	if err != nil {
+		return Wrap(err)
+	}
+	return nil
 }
 
 func MustAccAddressFromBech32(address string) AccAddress {
@@ -299,7 +309,7 @@ const (
 
 // Bech32ifyPubKey returns a Bech32 encoded string containing the appropriate
 // prefix based on the key type provided for a given PublicKey.
-func Bech32ifyPubKey(pkt Bech32PubKeyType, pubkey TmPubKey) (string, error) {
+func Bech32ifyPubKey(pkt Bech32PubKeyType, pubkey cryptotypes.PubKey) (string, error) {
 	var bech32Prefix string
 
 	switch pkt {
@@ -319,7 +329,7 @@ func Bech32ifyPubKey(pkt Bech32PubKeyType, pubkey TmPubKey) (string, error) {
 
 // GetPubKeyFromBech32 returns a PublicKey from a bech32-encoded PublicKey with
 // a given key type.
-func GetPubKeyFromBech32(pkt Bech32PubKeyType, pubkeyStr string) (TmPubKey, error) {
+func GetPubKeyFromBech32(pkt Bech32PubKeyType, pubkeyStr string) (cryptotypes.PubKey, error) {
 	var bech32Prefix string
 
 	switch pkt {
