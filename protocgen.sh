@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
+#!/usr/bin/env dash
 
-set -eo pipefail
+# set -e -o pipefail
 
 proto_dirs=$(find ./proto -path -prune -o -name '*.proto' -print0 | xargs -0 -n1 dirname | sort | uniq)
 for dir in $proto_dirs; do

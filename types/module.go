@@ -1,13 +1,10 @@
 package types
 
 import (
-	"github.com/tendermint/tendermint/crypto"
-
 	cdctypes "github.com/irisnet/service-sdk-go/codec/types"
+	cryptotypes "github.com/irisnet/service-sdk-go/crypto/types"
 )
 
-//The purpose of this interface is to convert the irita system type to the user receiving type
-// and standardize the user interface
 type Response interface {
 	Convert() interface{}
 }
@@ -23,11 +20,11 @@ type Module interface {
 }
 
 type KeyManager interface {
-	Sign(name, password string, data []byte) ([]byte, crypto.PubKey, error)
+	Sign(name, password string, data []byte) ([]byte, cryptotypes.PubKey, error)
 	Insert(name, password string) (string, string, error)
 	Recover(name, password, mnemonic string) (string, error)
 	Import(name, password string, privKeyArmor string) (address string, err error)
 	Export(name, password string) (privKeyArmor string, err error)
 	Delete(name, password string) error
-	Find(name, password string) (crypto.PubKey, AccAddress, error)
+	Find(name, password string) (cryptotypes.PubKey, AccAddress, error)
 }

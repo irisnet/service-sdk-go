@@ -3,10 +3,9 @@ package client
 import (
 	"fmt"
 
-	tmcrypto "github.com/tendermint/tendermint/crypto"
-
 	"github.com/irisnet/service-sdk-go/crypto"
 	cryptoamino "github.com/irisnet/service-sdk-go/crypto/codec"
+	cryptotypes "github.com/irisnet/service-sdk-go/crypto/types"
 	"github.com/irisnet/service-sdk-go/types"
 	"github.com/irisnet/service-sdk-go/types/store"
 )
@@ -16,7 +15,7 @@ type keyManager struct {
 	algo   string
 }
 
-func (k keyManager) Sign(name, password string, data []byte) ([]byte, tmcrypto.PubKey, error) {
+func (k keyManager) Sign(name, password string, data []byte) ([]byte, cryptotypes.PubKey, error) {
 	info, err := k.keyDAO.Read(name, password)
 	if err != nil {
 		return nil, nil, fmt.Errorf("name %s not exist", name)
@@ -85,8 +84,7 @@ func (k keyManager) Recover(name, password, mnemonic string) (string, error) {
 		Algo:         k.algo,
 	}
 
-	err = k.keyDAO.Write(name, password, info)
-	if err != nil {
+	if err = k.keyDAO.Write(name, password, info); err != nil {
 		return "", err
 	}
 
@@ -140,15 +138,15 @@ func (k keyManager) Delete(name, password string) error {
 	return k.keyDAO.Delete(name, password)
 }
 
-func (k keyManager) Find(name, password string) (tmcrypto.PubKey, types.AccAddress, error) {
+func (k keyManager) Find(name, password string) (cryptotypes.PubKey, types.AccAddress, error) {
 	info, err := k.keyDAO.Read(name, password)
 	if err != nil {
-		return nil, nil, fmt.Errorf("name %s not exist", name)
+		return nil, nil, types.WrapWithMessage(err, "name %s not exist", name)
 	}
 
 	pubKey, err := cryptoamino.PubKeyFromBytes(info.PubKey)
 	if err != nil {
-		return nil, nil, fmt.Errorf("name %s not exist", name)
+		return nil, nil, types.WrapWithMessage(err, "name %s not exist", name)
 	}
 
 	return pubKey, types.AccAddress(pubKey.Address().Bytes()), nil

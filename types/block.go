@@ -107,25 +107,3 @@ func ParseBlockResult(res *ctypes.ResultBlockResults) BlockResult {
 		},
 	}
 }
-
-func ParseValidators(cdc *codec.LegacyAmino, vs []*tmtypes.Validator) []Validator {
-	var validators = make([]Validator, len(vs))
-	for i, v := range vs {
-		bech32Addr, _ := ConsAddressFromHex(v.Address.String())
-		bech32PubKey, _ := Bech32ifyPubKey(Bech32PubKeyTypeConsPub, v.PubKey)
-
-		var pubKey PubKey
-		if bz, err := cdc.MarshalJSON(v.PubKey); err == nil {
-			_ = cdc.UnmarshalJSON(bz, &pubKey)
-		}
-		validators[i] = Validator{
-			Bech32Address:    bech32Addr.String(),
-			Bech32PubKey:     bech32PubKey,
-			Address:          v.Address.String(),
-			PubKey:           pubKey,
-			VotingPower:      v.VotingPower,
-			ProposerPriority: v.ProposerPriority,
-		}
-	}
-	return validators
-}

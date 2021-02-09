@@ -30,9 +30,9 @@ type Client struct {
 	encodingConfig types.EncodingConfig
 
 	types.BaseClient
-	Bank    bank.BankI
-	Token   token.TokenI
-	Service service.ServiceI
+	Bank    bank.Client
+	Token   token.Client
+	Service service.Client
 }
 
 func NewClient(cfg types.ClientConfig) Client {
@@ -97,7 +97,7 @@ func makeEncodingConfig() types.EncodingConfig {
 	amino := codec.NewLegacyAmino()
 	interfaceRegistry := cdctypes.NewInterfaceRegistry()
 	marshaler := codec.NewProtoCodec(interfaceRegistry)
-	txCfg := txtypes.NewTxConfig(marshaler, types.DefaultPublicKeyCodec{}, txtypes.DefaultSignModes)
+	txCfg := txtypes.NewTxConfig(marshaler, txtypes.DefaultSignModes)
 
 	encodingConfig := types.EncodingConfig{
 		InterfaceRegistry: interfaceRegistry,
@@ -123,4 +123,5 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterInterface("cosmos.v1beta1.Msg", (*types.Msg)(nil))
 	txtypes.RegisterInterfaces(registry)
+	cryptocodec.RegisterInterfaces(registry)
 }

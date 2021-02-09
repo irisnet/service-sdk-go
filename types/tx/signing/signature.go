@@ -3,7 +3,7 @@ package signing
 import (
 	"fmt"
 
-	"github.com/tendermint/tendermint/crypto"
+	cryptotypes "github.com/irisnet/service-sdk-go/crypto/types"
 )
 
 // SignatureV2 is a convenience type that is easier to use in application logic
@@ -13,7 +13,7 @@ import (
 // signatures.
 type SignatureV2 struct {
 	// PubKey is the public key to use for verifying the signature
-	PubKey crypto.PubKey
+	PubKey cryptotypes.PubKey
 
 	// Data is the actual data of the signature which includes SignMode's and
 	// the signatures themselves for either single or multi-signatures.

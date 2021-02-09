@@ -196,9 +196,9 @@ func (r rpcClient) parseNewBlockHeader(data sdk.EventData) sdk.EventDataNewBlock
 }
 
 func (r rpcClient) parseValidatorSetUpdates(data sdk.EventData) sdk.EventDataValidatorSetUpdates {
-	validatorSet := data.(tmtypes.EventDataValidatorSetUpdates)
+	validatorSet := data.(sdk.EventDataValidatorSetUpdates)
 	return sdk.EventDataValidatorSetUpdates{
-		ValidatorUpdates: sdk.ParseValidators(r.cdc, validatorSet.ValidatorUpdates),
+		ValidatorUpdates: validatorSet.ValidatorUpdates,
 	}
 }
 
