@@ -5,9 +5,9 @@ package auth
 
 import (
 	fmt "fmt"
+	types "github.com/irisnet/service-sdk-go/codec/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
-	types "github.com/irisnet/service-sdk-go/codec/types"
 	_ "github.com/regen-network/cosmos-proto"
 	io "io"
 	math "math"

@@ -27,7 +27,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 //
 //  message SomeRequest {
 //          Foo some_parameter = 1;
-//          PageRequest pagination = 2;
+//          PageRequest page = 2;
 //  }
 type PageRequest struct {
 	// key is a value returned in PageResponse.next_key to begin
@@ -42,9 +42,8 @@ type PageRequest struct {
 	// If left empty it will default to a value to be set by each app.
 	Limit uint64 `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
 	// count_total is set to true  to indicate that the result set should include
-	// a count of the total number of items available for pagination in UIs.
-	// count_total is only respected when offset is used. It is ignored when key
-	// is set.
+	// a count of the total number of items available for pagination in UIs. count_total
+	// is only respected when offset is used. It is ignored when key is set.
 	CountTotal bool `protobuf:"varint,4,opt,name=count_total,json=countTotal,proto3" json:"count_total,omitempty"`
 }
 
@@ -109,8 +108,8 @@ func (m *PageRequest) GetCountTotal() bool {
 	return false
 }
 
-// PageResponse is to be embedded in gRPC response messages where the
-// corresponding request message has used PageRequest.
+// PageResponse is to be embedded in gRPC response messages where the corresponding
+// request message has used PageRequest
 //
 //  message SomeResponse {
 //          repeated Bar results = 1;
