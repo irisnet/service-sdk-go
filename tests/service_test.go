@@ -57,7 +57,7 @@ func (s ServiceTestSuite) TestService() {
 	require.NoError(s.T(), err)
 	require.NotEmpty(s.T(), result.Hash)
 
-	bindResp, err := s.serviceClient.QueryServiceBinding(definition.ServiceName, s.Account().Address)
+	bindResp, err := s.serviceClient.QueryServiceBinding(definition.ServiceName, s.Account().Address.String())
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), binding.ServiceName, bindResp.ServiceName)
 	require.Equal(s.T(), s.Account().Address, bindResp.Provider)
@@ -94,7 +94,7 @@ func (s ServiceTestSuite) TestService() {
 	var sub2 sdk.Subscription
 	var exit = make(chan int)
 
-	requestContextID, err = s.serviceClient.InvokeService(invocation, baseTx)
+	requestContextID, _, err = s.serviceClient.InvokeService(invocation, baseTx)
 	require.NoError(s.T(), err)
 
 	sub2, err = s.serviceClient.SubscribeServiceResponse(requestContextID, func(reqCtxID, reqID, responses string) {

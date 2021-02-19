@@ -8,7 +8,7 @@ format:
 
 test-unit:
 	cd tests/scripts/ && sh build.sh && sh start.sh
-	@go test $(PACKAGES)
+	@go test -v $(PACKAGES)
 	cd tests/scripts/ && sh clean.sh
 
 proto-gen:
