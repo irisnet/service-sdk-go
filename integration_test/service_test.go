@@ -1,4 +1,4 @@
-package test
+package integration_test
 
 import (
 	"time"
@@ -10,9 +10,9 @@ import (
 	"github.com/irisnet/service-sdk-go/service"
 )
 
-func (s ServiceTestSuite) TestService() {
+func (s IntegrationTestSuite) TestService() {
 	schemas := `{"input":{"type":"object"},"output":{"type":"object"},"error":{"type":"object"}}`
-	pricing := `{"price":"1point"}`
+	pricing := `{"price":"1uiris"}`
 	options := `{}`
 
 	baseTx := sdk.BaseTx{
@@ -42,9 +42,9 @@ func (s ServiceTestSuite) TestService() {
 	require.EqualValues(s.T(), definition.Tags, defi.Tags)
 	require.Equal(s.T(), definition.AuthorDescription, defi.AuthorDescription)
 	require.Equal(s.T(), definition.Schemas, defi.Schemas)
-	require.Equal(s.T(), s.Account().Address, defi.Author)
+	require.Equal(s.T(), s.Account().Address.String(), defi.Author)
 
-	deposit, e := sdk.ParseDecCoins("20000point")
+	deposit, e := sdk.ParseDecCoins("20000uiris")
 	require.NoError(s.T(), e)
 	binding := service.BindServiceRequest{
 		ServiceName: definition.ServiceName,
@@ -60,10 +60,10 @@ func (s ServiceTestSuite) TestService() {
 	bindResp, err := s.serviceClient.QueryServiceBinding(definition.ServiceName, s.Account().Address.String())
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), binding.ServiceName, bindResp.ServiceName)
-	require.Equal(s.T(), s.Account().Address, bindResp.Provider)
+	require.Equal(s.T(), s.Account().Address.String(), bindResp.Provider)
 	require.Equal(s.T(), binding.Pricing, bindResp.Pricing)
 
-	input := `{"header":{},"body":{"pair":"point-usdt"}}`
+	input := `{"header":{},"body":{"pair":"uiris-usdt"}}`
 	output := `{"header":{},"body":{"last":"1:100"}}`
 	testResult := `{"code":200,"message":""}`
 
@@ -76,7 +76,7 @@ func (s ServiceTestSuite) TestService() {
 	sub1, err = s.serviceClient.SubscribeServiceRequest(definition.ServiceName, callback, baseTx)
 	require.NoError(s.T(), err)
 
-	serviceFeeCap, e := sdk.ParseDecCoins("200point")
+	serviceFeeCap, e := sdk.ParseDecCoins("200uiris")
 	require.NoError(s.T(), e)
 
 	invocation := service.InvokeServiceRequest{

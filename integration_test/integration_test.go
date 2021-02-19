@@ -1,6 +1,7 @@
-package test
+package integration_test
 
 import (
+	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"os"
@@ -17,18 +18,18 @@ import (
 )
 
 const (
-	nodeURI  = "tcp://localhost:26657"
-	grpcAddr = "localhost:9090"
+	nodeURI  = "tcp://127.0.0.1:26657"
+	grpcAddr = "127.0.0.1:9090"
 	chainID  = "test"
 	charset  = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	addr     = "iaa1rgnu8grzt6mwnjg7jss7w0sfyjn67g4et0hzfz"
+	addr     = "iaa1s7cmgyu6xqergksdwq63fjhpekwrt7h2k4j4hu"
 )
 
 var (
-	path string
+	path = os.ExpandEnv("$HOME/.iriscli")
 )
 
-type ServiceTestSuite struct {
+type IntegrationTestSuite struct {
 	suite.Suite
 
 	serviceClient service.ServiceClient
@@ -38,11 +39,6 @@ type ServiceTestSuite struct {
 	randAccounts []MockAccount
 }
 
-type SubTest struct {
-	testName string
-	testCase func(s ServiceTestSuite)
-}
-
 // MockAccount define a account for test
 type MockAccount struct {
 	Name, Password string
@@ -50,13 +46,15 @@ type MockAccount struct {
 }
 
 func TestSuite(t *testing.T) {
-	suite.Run(t, new(ServiceTestSuite))
+	t.Parallel()
+	suite.Run(t, new(IntegrationTestSuite))
 }
 
-func (s *ServiceTestSuite) SetupSuite() {
+func (s *IntegrationTestSuite) SetupSuite() {
 	options := []types.Option{
 		types.KeyDAOOption(store.NewMemory(nil)),
-		types.TimeoutOption(10),
+		types.TimeoutOption(6),
+		types.CachedOption(true),
 	}
 	cfg, err := types.NewClientConfig(nodeURI, grpcAddr, chainID, options...)
 	if err != nil {
@@ -68,23 +66,21 @@ func (s *ServiceTestSuite) SetupSuite() {
 	s.r = rand.New(rand.NewSource(time.Now().UnixNano()))
 	s.rootAccount = MockAccount{
 		Name:     "v1",
-		Password: "YQVGsOjegu",
+		Password: "1234567890",
 		Address:  types.MustAccAddressFromBech32(addr),
 	}
 
 	s.initAccount()
 }
 
-func (s *ServiceTestSuite) TearDownSuite() {
+func (s *IntegrationTestSuite) TearDownSuite() {
 	_ = os.Remove(path)
 }
 
-func (s *ServiceTestSuite) initAccount() {
-	_, err := s.serviceClient.BaseClient.Import(
-		s.Account().Name,
+func (s *IntegrationTestSuite) initAccount() {
+	_, err := s.serviceClient.Import(s.Account().Name,
 		s.Account().Password,
-		string(getPrivKeyArmor()),
-	)
+		string(getPrivKeyArmor()))
 	if err != nil {
 		panic(err)
 	}
@@ -93,9 +89,9 @@ func (s *ServiceTestSuite) initAccount() {
 	for i := 0; i < 5; i++ {
 		name := s.RandStringOfLength(10)
 		pwd := s.RandStringOfLength(16)
-		address, _, err := s.serviceClient.BaseClient.Insert(name, "11111111")
+		address, _, err := s.serviceClient.Insert(name, "11111111")
 		if err != nil {
-			panic("generate test account failed")
+			panic(fmt.Sprintf("generate test account failed, err: %s", err.Error()))
 		}
 
 		s.randAccounts = append(s.randAccounts, MockAccount{
@@ -107,7 +103,7 @@ func (s *ServiceTestSuite) initAccount() {
 }
 
 // RandStringOfLength return a random string
-func (s *ServiceTestSuite) RandStringOfLength(l int) string {
+func (s *IntegrationTestSuite) RandStringOfLength(l int) string {
 	var result []byte
 	bytes := []byte(charset)
 	for i := 0; i < l; i++ {
@@ -117,12 +113,12 @@ func (s *ServiceTestSuite) RandStringOfLength(l int) string {
 }
 
 // GetRandAccount return a random test account
-func (s *ServiceTestSuite) GetRandAccount() MockAccount {
+func (s *IntegrationTestSuite) GetRandAccount() MockAccount {
 	return s.randAccounts[s.r.Intn(len(s.randAccounts))]
 }
 
 // Account return a test account
-func (s *ServiceTestSuite) Account() MockAccount {
+func (s *IntegrationTestSuite) Account() MockAccount {
 	return s.rootAccount
 }
 
@@ -132,7 +128,7 @@ func getPrivKeyArmor() []byte {
 		panic(err)
 	}
 	path = filepath.Dir(path)
-	path = filepath.Join(path, "tests/scripts/priv.key")
+	path = filepath.Join(path, "integration_test/scripts/priv.key")
 	bz, err := ioutil.ReadFile(path)
 	if err != nil {
 		panic(err)
