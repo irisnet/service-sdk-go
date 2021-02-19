@@ -6,10 +6,10 @@ package token
 import (
 	context "context"
 	fmt "fmt"
-	types "github.com/irisnet/service-sdk-go/codec/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
+	types "github.com/irisnet/service-sdk-go/codec/types"
 	github_com_irisnet_service_sdk_go_types "github.com/irisnet/service-sdk-go/types"
 	types1 "github.com/irisnet/service-sdk-go/types"
 	query "github.com/irisnet/service-sdk-go/types/query"

@@ -5,9 +5,9 @@ package multisig
 
 import (
 	fmt "fmt"
-	types "github.com/irisnet/service-sdk-go/codec/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
+	types "github.com/irisnet/service-sdk-go/codec/types"
 	io "io"
 	math "math"
 	math_bits "math/bits"

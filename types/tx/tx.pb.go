@@ -5,9 +5,9 @@ package tx
 
 import (
 	fmt "fmt"
-	types "github.com/irisnet/service-sdk-go/codec/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
+	types "github.com/irisnet/service-sdk-go/codec/types"
 	types1 "github.com/irisnet/service-sdk-go/crypto/types"
 	github_com_irisnet_service_sdk_go_types "github.com/irisnet/service-sdk-go/types"
 	types2 "github.com/irisnet/service-sdk-go/types"
