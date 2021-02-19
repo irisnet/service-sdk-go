@@ -9,13 +9,13 @@ import (
 
 const (
 	defaultGas           = 200000
-	defaultFees          = "4point"
+	defaultFees          = "4uiris"
 	defaultTimeout       = 5
 	defaultLevel         = "info"
 	defaultMaxTxsBytes   = 1073741824
-	defaultAlgo          = "sm2"
+	defaultAlgo          = "secp256k1"
 	defaultMode          = Sync
-	defaultPath          = "$HOME/irita-sdk-go/leveldb"
+	defaultPath          = "$HOME/service-sdk-go/leveldb"
 	defaultGasAdjustment = 1.0
 )
 

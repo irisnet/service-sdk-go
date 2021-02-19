@@ -1,0 +1,18 @@
+name: TestUnit
+on: [pull_request]
+
+jobs:
+  test-unit:
+    name: Test Units
+    runs-on: ubuntu-16.04
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v1
+      - name: Run unit tests
+        uses: irisnet/irishub@1.0.0-rc0
+        env:
+          GO111MODULE: "on"
+        volumes:
+          - scripts/node/:~/.iris/
+        with:
+          args: iris start > info.log & && go test $(go list ./...) 
