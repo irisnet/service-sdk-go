@@ -96,7 +96,7 @@ func (e entry) Error(msg string, keyvals ...interface{}) {
 
 func (e entry) With(keyvals ...interface{}) log.Logger {
 	return entry{
-		e.WithFields(argsToFields(keyvals...)),
+		e.Entry.WithFields(argsToFields(keyvals...)),
 	}
 }
 
