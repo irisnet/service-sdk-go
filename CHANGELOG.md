@@ -43,10 +43,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 * Support irismod v1.2
 
-### Features
-
-* Support irismod v1.1
-
 ## [v1.0.0-rc0] - 2021-01-11
 
 ### Features
