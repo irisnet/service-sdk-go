@@ -9,10 +9,8 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v1
       - name: Run unit tests
-        uses: irisnet/irishub@1.0.0-rc0
+        uses: cedrickring/golang-action/go1.15@1.6.0
         env:
           GO111MODULE: "on"
-        volumes:
-          - scripts/node/:~/.iris/
         with:
-          args: iris start > info.log & && go test $(go list ./...) 
+          args: make test-unit
