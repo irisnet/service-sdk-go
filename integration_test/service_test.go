@@ -85,7 +85,6 @@ func (s IntegrationTestSuite) TestService() {
 		Input:         input,
 		ServiceFeeCap: serviceFeeCap,
 		Timeout:       3,
-		SuperMode:     false,
 		Repeated:      true,
 		RepeatedTotal: -1,
 	}

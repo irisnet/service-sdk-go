@@ -10,7 +10,6 @@ import (
 
 	"github.com/irisnet/service-sdk-go/codec"
 	"github.com/irisnet/service-sdk-go/codec/types"
-
 	sdk "github.com/irisnet/service-sdk-go/types"
 )
 
@@ -193,7 +192,6 @@ func (s ServiceClient) InvokeService(request InvokeServiceRequest, baseTx sdk.Ba
 		Input:             request.Input,
 		ServiceFeeCap:     amt,
 		Timeout:           request.Timeout,
-		SuperMode:         request.SuperMode,
 		Repeated:          request.Repeated,
 		RepeatedFrequency: request.RepeatedFrequency,
 		RepeatedTotal:     request.RepeatedTotal,
