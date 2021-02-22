@@ -1,4 +1,4 @@
-FROM irisnet/irishub:1.0.0-rc0
+FROM irisnet/irishub:v1.0.0
 
 COPY . /scripts
 

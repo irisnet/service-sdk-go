@@ -85,7 +85,7 @@ func (s IntegrationTestSuite) TestService() {
 		Input:         input,
 		ServiceFeeCap: serviceFeeCap,
 		Timeout:       3,
-		Repeated:      true,
+		Repeated:      false, // test for irishub v1.0.0
 		RepeatedTotal: -1,
 	}
 
@@ -123,11 +123,11 @@ func (s IntegrationTestSuite) TestService() {
 	}
 
 loop:
-	_, err = s.serviceClient.PauseRequestContext(requestContextID, baseTx)
-	require.NoError(s.T(), err)
+	// _, err = s.serviceClient.PauseRequestContext(requestContextID, baseTx)
+	// require.NoError(s.T(), err)
 
-	_, err = s.serviceClient.StartRequestContext(requestContextID, baseTx)
-	require.NoError(s.T(), err)
+	// _, err = s.serviceClient.StartRequestContext(requestContextID, baseTx)
+	// require.NoError(s.T(), err)
 
 	request, err := s.serviceClient.QueryRequestContext(requestContextID)
 	require.NoError(s.T(), err)
