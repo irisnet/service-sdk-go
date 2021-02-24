@@ -37,6 +37,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+## [v1.0.0] - 2021-02-24
+
+### Features
+
+* [#12](https://github.com/irisnet/service-sdk-go/issues/12) Support irismod v1.3
+
 ## [v1.0.0-rc1] - 2021-02-20
 
 ### Features
@@ -52,5 +58,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 <!-- Release links -->
 
+[v1.0.0]: https://github.com/irisnet/service-sdk-go/releases/tag/v1.0.0
 [v1.0.0-rc1]: https://github.com/irisnet/service-sdk-go/releases/tag/v1.0.0-rc1
 [v1.0.0-rc0]: https://github.com/irisnet/service-sdk-go/releases/tag/v1.0.0-rc0
