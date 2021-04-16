@@ -96,7 +96,7 @@ func (s IntegrationTestSuite) TestService() {
 	requestContextID, _, err = s.serviceClient.InvokeService(invocation, baseTx)
 	require.NoError(s.T(), err)
 
-	sub2, err = s.serviceClient.SubscribeServiceResponse(requestContextID, func(reqCtxID, reqID, responses string) {
+	sub2, err = s.serviceClient.SubscribeServiceResponse(requestContextID, func(reqCtxID, reqID, result, responses string) {
 		require.Equal(s.T(), reqCtxID, requestContextID)
 		require.Equal(s.T(), output, responses)
 		request, err := s.serviceClient.QueryServiceRequest(reqID)
